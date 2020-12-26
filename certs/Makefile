@@ -4,7 +4,7 @@ ca.key:
 
 ca.crt: ca.key Makefile
 	openssl req \
-    -x509 -new -nodes \
+		-x509 -new -nodes \
 		-key ca.key \
 		-subj "/CN=kubi-ca" \
 		-days 100000 \
