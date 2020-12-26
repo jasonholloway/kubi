@@ -1,7 +1,8 @@
 
 nodes = puce.upis
+nodeTargets = $(foreach n,$(nodes),nodes/$(n))
 
-done: ca nodes
+done: ca $(nodeTargets)
 	touch done
 
 clean:
@@ -12,7 +13,7 @@ ca: ca/key ca/crt
 ca/key: 
 	openssl genrsa -out ca/key 2048
 
-ca/crt: ca/key Makefile
+ca/crt: ca/key
 	openssl req \
 		-x509 -new -nodes \
 		-key ca/key \
@@ -20,14 +21,18 @@ ca/crt: ca/key Makefile
 		-days 100000 \
 		-out ca/crt
 
-nodes: ca node
-	mkdir -p nodes
+nodes/%: ca/crt
+	scp -r node $*:kubi
+	scp ca/crt $*:kubi/ca.crt
+	ssh $* "cd kubi && make"
+	touch $@
 
-	for node in $(nodes); do \
-		scp -r node $$node:kubi; \
-		ssh $$node "cd kubi && make"; \
-		touch nodes/$$node; \
-	done
 
-	touch nodes
-
+#
+# we want csrs to be 
+#
+#
+#
+#
+#
+#

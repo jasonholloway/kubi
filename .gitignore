@@ -1,8 +1,9 @@
 *~
 *\#
-*.key
-*.crt
-*.csr
-*.srl
-~*
-./done
+.\#*
+*key
+*crt
+*csr
+*srl
+done
+nodes/*
