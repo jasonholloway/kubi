@@ -166,8 +166,11 @@ nodes/%/crt: nodes/%/csr
 		-out $@
 	$(syncOut)
 
+
+# pipe in version here too...
 nodes/%/done: nodes/%/crt manager/crt scheduler/crt api/crt 
-	echo DONE?
+	$(syncOut)
+	ssh $* "cd kubi && make -f node/Makefile install host=$*"
 
 nodes/%/clean:
 	ssh $* "if [ -d kubi ]; then cd kubi; make -f node/Makefile clean host=$*; cd ..; rm -rf kubi; fi"

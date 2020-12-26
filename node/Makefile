@@ -1,11 +1,15 @@
 
 n = nodes/$(host)
+bin = /usr/local/bin
 
 csr: $n/csr
 crt: $n/crt
+install: $n/installed
 
 ca/crt:
 	test -f $@
+
+
 
 $n/:
 	mkdir -p $(n) || true
@@ -22,6 +26,19 @@ $n/csr: $n/key
 
 $n/crt:
 	echo woo
+
+
+
+$n/installed: $bin/kubectl
+	touch $n/installed
+
+$bin/kubectl:
+	wget https://storage.googleapis.com/kubernetes-release/release/v1.18.6/bin/linux/amd64/kubectl
+	chmod +x kubectl
+	mv kubectl $bin/
+
+
+
 
 clean:
 	rm -rf $n
