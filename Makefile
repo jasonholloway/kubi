@@ -1,12 +1,12 @@
 
 nodes = puce.upis
-nodeTargets = $(foreach n,$(nodes),nodes/$(n))
+nodeDones = $(foreach n,$(nodes),nodes/$(n)/done)
+nodeCleans = $(foreach n,$(nodes),nodes/$(n)/clean)
 
-done: ca $(nodeTargets)
+done: ca $(nodeDones)
+	@echo $(nodeDones)
 	touch done
 
-clean:
-	rm -rf **/*crt **/*key nodes/*
 
 ca: ca/key ca/crt
 
@@ -21,18 +21,33 @@ ca/crt: ca/key
 		-days 100000 \
 		-out ca/crt
 
-nodes/%: ca/crt
-	scp -r node $*:kubi
-	scp ca/crt $*:kubi/ca.crt
-	ssh $* "cd kubi && make"
-	touch $@
+
+syncOut = rsync -rt --exclude '*key' ca node $*:kubi
+syncIn = rsync -rt --exclude '*key' $*:kubi/nodes .
+
+nodes/%/csr: ca/crt
+	$(syncOut)
+	ssh $* "cd kubi && make -f node/Makefile csr host=$*"
+	$(syncIn)
+
+nodes/%/crt: nodes/%/csr
+#here we process the csr and sync back to node
+	echo PLOPS > $@
+	$(syncOut)
+
+nodes/%/done: nodes/%/crt
+	echo DONE?
+
+nodes/%/clean:
+	ssh $* "if [ -d kubi ]; then cd kubi; make -f node/Makefile clean host=$*; cd ..; rm -rf kubi; fi"
 
 
-#
-# we want csrs to be 
-#
-#
-#
-#
-#
-#
+clean: $(nodeCleans)
+	rm -rf done **/*crt **/*key **/*csr nodes
+
+
+#.PHONY: clean $(nodeCleans)
+
+
+# gruesomely needed to stop deletion of supposedly-intermediate files
+.SECONDARY:
