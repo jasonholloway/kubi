@@ -1,7 +1,9 @@
 
-nodes = puce.upis
-nodeDones = $(foreach n,$(nodes),nodes/$(n)/done)
-nodeCleans = $(foreach n,$(nodes),nodes/$(n)/clean)
+nodes:=puce.upis
+nodeUser:=kubi
+
+nodeDones:=$(foreach n,$(nodes),nodes/$(n)/done)
+nodeCleans:=$(foreach n,$(nodes),nodes/$(n)/clean)
 
 done: ca $(nodeDones) certs
 	@echo $(nodeDones)
@@ -146,12 +148,12 @@ api/crt: api/csr
 ###############################################################
 # NODES
 
-syncOut = rsync -rt --exclude 'ca/key' . $*:kubi
-syncIn = rsync -rt --exclude '*key' $*:kubi/nodes .
+syncOut = rsync -rt --exclude 'ca/key' . $*:/kubi
+syncIn = rsync -rt --exclude '*key' $*:/kubi/nodes .
 
 nodes/%/csr: ca/crt
 	$(syncOut)
-	ssh $* "cd kubi && make -f node/Makefile csr host=$*"
+	ssh $(nodeUser)@$* "cd /kubi && make -f node/Makefile csr host=$*"
 	$(syncIn)
 
 nodes/%/crt: nodes/%/csr
@@ -167,15 +169,12 @@ nodes/%/crt: nodes/%/csr
 	$(syncOut)
 
 
-# pipe in version here too...
 nodes/%/done: nodes/%/crt manager/crt scheduler/crt api/crt 
 	$(syncOut)
-	ssh $* "cd kubi && make -f node/Makefile install host=$*"
+	ssh $(nodeUser)@$* "cd /kubi && make -f node/Makefile $@ host=$*"
 
 nodes/%/clean:
-	ssh $* "if [ -d kubi ]; then cd kubi; make -f node/Makefile clean host=$*; cd ..; rm -rf kubi; fi"
-
-
+	ssh $(nodeUser)@$* "cd /kubi; make -f node/Makefile clean host=$*"
 
 
 

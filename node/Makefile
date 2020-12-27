@@ -1,13 +1,8 @@
-
-n = nodes/$(host)
-bin = /usr/local/bin
-kubeBins=kubelet kube-apiserver kube-controller-manager kube-scheduler
-kubeBinPaths=$(foreach n,$(kubeBins),$(bin)/$(n))
-etcdBinPath=$(bin)/etcd
+n:=nodes/$(host)
+internalIP:=127.0.0.1
 
 csr: $n/csr
 crt: $n/crt
-install: $(etcdBinPath) $(kubeBinPaths)
 
 ca/crt:
 	test -f $@
@@ -26,15 +21,13 @@ $n/csr: $n/key
 		-out $n/csr
 
 $n/crt:
-	echo woo
+	test -f $@
 
+$n/done: $n/crt etcd/done k8s/done
+	touch done
 
-$(etcdBinPath): etcd/version
-	./get-etcd.sh
-
-$(kubeBinPaths): kube/version
-	./get-kube.sh
-
+include etcd/Makefile
+include k8s/Makefile
 
 clean:
 	rm -rf $n
