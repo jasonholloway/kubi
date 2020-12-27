@@ -1,15 +1,16 @@
 
 n = nodes/$(host)
 bin = /usr/local/bin
+kubeBins=kubelet kube-apiserver kube-controller-manager kube-scheduler
+kubeBinPaths=$(foreach n,$(kubeBins),$(bin)/$(n))
+etcdBinPath=$(bin)/etcd
 
 csr: $n/csr
 crt: $n/crt
-install: $n/installed
+install: $(etcdBinPath) $(kubeBinPaths)
 
 ca/crt:
 	test -f $@
-
-
 
 $n/:
 	mkdir -p $(n) || true
@@ -28,16 +29,11 @@ $n/crt:
 	echo woo
 
 
+$(etcdBinPath): etcd/version
+	./get-etcd.sh
 
-$n/installed: $bin/kubectl
-	touch $n/installed
-
-$bin/kubectl:
-	wget https://storage.googleapis.com/kubernetes-release/release/v1.18.6/bin/linux/amd64/kubectl
-	chmod +x kubectl
-	mv kubectl $bin/
-
-
+$(kubeBinPaths): kube/version
+	./get-kube.sh
 
 
 clean:
