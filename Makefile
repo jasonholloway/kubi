@@ -12,23 +12,7 @@ done: ca $(nodeDones) certs
 
 certs: admin/crt manager/crt scheduler/crt
 
-
-###############################################################
-# CA
-
-ca: ca/key ca/crt
-
-ca/key: 
-	openssl genrsa -out ca/key 2048
-
-ca/crt: ca/key
-	openssl req \
-		-x509 -new -nodes \
-		-key ca/key \
-		-subj "/CN=kubi-ca" \
-		-days 100000 \
-		-out ca/crt
-
+include ca/Makefile
 
 
 ###############################################################
@@ -126,9 +110,8 @@ api/key: api/
 	openssl genrsa -out api/key 2048
 
 api/csr: api/key
-	openssl req -new -nodes \
-		-sha256 \
-		-subj "/O=system:masters/CN=kubi-api" \
+	openssl req -new \
+		-config api/csr.conf \
 		-key api/key \
 		-out api/csr
 
@@ -148,12 +131,12 @@ api/crt: api/csr
 ###############################################################
 # NODES
 
-syncOut = rsync -rt --exclude 'ca/key' . $*:/kubi
-syncIn = rsync -rt --exclude '*key' $*:/kubi/nodes .
+syncOut = rsync -rt --exclude 'ca/key' . $(nodeUser)@$*:/kubi
+syncIn = rsync -rt --exclude '*key' $(nodeUser)@$*:/kubi/nodes .
 
 nodes/%/csr: ca/crt
 	$(syncOut)
-	ssh $(nodeUser)@$* "cd /kubi && make -f node/Makefile csr host=$*"
+	ssh $(nodeUser)@$* "cd /kubi && make -f node/Makefile $@ host=$*"
 	$(syncIn)
 
 nodes/%/crt: nodes/%/csr
