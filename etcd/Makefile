@@ -1,18 +1,12 @@
-bins:=etcd etcdctl
-binPaths:=$(foreach b,$(bins),bin/$(b))
-servicePath:=/etc/systemd/system/etcd.service
+etcdBinNames:=etcd etcdctl
+etcdBins:=$(foreach b,$(etcdBinNames),bin/$(b))
+etcdService:=/etc/systemd/system/etcd.service
 
-$(binPaths): etcd/version etcd/install.sh
+$(etcdBins): etcd/version etcd/install.sh
 	etcd/install.sh
 
-$(servicePath): etcd/services.sh
+$(etcdService): etcd/services.sh ca/crt api/crt api/key
 	host=$(host) internalIP=kubi etcd/services.sh
-
-etcd/done: $(binPaths) $(servicePath)
-	sudo systemctl daemon-reload
-	sudo systemctl enable etcd
-	sudo systemctl start etcd
-	touch etcd/done
 
 etcd/test:
 	sudo ETCDCTL_API=3 etcdctl member list \

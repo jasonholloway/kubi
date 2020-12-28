@@ -13,6 +13,7 @@ done: ca $(nodeDones) certs
 certs: admin/crt manager/crt scheduler/crt
 
 include ca/Makefile
+include api/Makefile
 
 
 ###############################################################
@@ -101,38 +102,10 @@ manager/crt: manager/csr
 
 
 ###############################################################
-# API
-
-api/:
-	mkdir -p api || true
-
-api/key: api/
-	openssl genrsa -out api/key 2048
-
-api/csr: api/key
-	openssl req -new \
-		-config api/csr.conf \
-		-key api/key \
-		-out api/csr
-
-api/crt: api/csr
-	openssl x509 -req \
-		-sha256 \
-		-CA ca/crt \
-		-CAkey ca/key \
-		-set_serial 01 \
-		-extensions req_ext \
-		-days 9999 \
-		-in api/csr \
-		-out api/crt
-
-
-
-###############################################################
 # NODES
 
 syncOut = rsync -rt --exclude 'ca/key' . $(nodeUser)@$*:/kubi
-syncIn = rsync -rt --exclude '*key' $(nodeUser)@$*:/kubi/nodes .
+syncIn = rsync -rt --exclude '*key' --exclude '*done' $(nodeUser)@$*:/kubi/nodes .
 
 nodes/%/csr: ca/crt
 	$(syncOut)

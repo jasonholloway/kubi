@@ -2,10 +2,6 @@
 
 host=${host:?host not set}
 
-#
-# so the kube path needs to be somewhere recognisable
-#
-
 cat <<EOF | sudo tee /etc/systemd/system/etcd.service
 [Unit]
 Description=etcd
@@ -38,3 +34,9 @@ RestartSec=5
 WantedBy=multi-user.target
 
 EOF
+
+sudo systemctl stop etcd
+sudo systemctl disable etcd
+sudo systemctl enable etcd
+sudo systemctl daemon-reload
+sudo systemctl start etcd

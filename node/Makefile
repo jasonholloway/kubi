@@ -1,6 +1,10 @@
 n:=nodes/$(host)
 internalIP:=kubi.local
 
+include etcd/Makefile
+include k8s/Makefile
+include api/Makefile
+
 ca/crt:
 	test -f $@
 
@@ -20,12 +24,9 @@ $n/csr: $n/key
 $n/crt:
 	test -f $@
 
-$n/done: $n/crt node/hosts etcd/done k8s/done
+$n/done: $n/crt node/hosts $(etcdService) k8s/done api/done
 	cat node/hosts | sudo tee -a /etc/hosts
 	touch $@
-
-include etcd/Makefile
-include k8s/Makefile
 
 clean:
 	rm -rf $n etcd k8s
