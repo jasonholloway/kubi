@@ -2,6 +2,7 @@ n:=nodes/$(host)
 internalIP:=kubi.local
 
 include node/etcd.mk
+include node/oci.mk
 include node/k8s.mk
 
 ca/crt:
@@ -27,7 +28,7 @@ $n/crt:
 	cat node/hosts | sudo tee -a /etc/hosts
 
 
-$n/prep: $n/crt /etc/hosts $(etcdService) $(apiService) $(controllerService) $(schedulerService)
+$n/prep: $n/crt /etc/hosts $(etcdService) $(apiService) $(controllerService) $(schedulerService) $(containerdService)
 
 clean:
 	sudo systemctl stop $(etcdService)
