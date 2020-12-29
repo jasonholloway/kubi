@@ -125,7 +125,7 @@ nodes/%/crt: nodes/%/csr
 
 nodes/%/prep: nodes/%/crt manager/crt scheduler/crt api/crt k8s/encryption.yaml
 	$(syncOut)
-	ssh $(nodeUser)@$* "cd /kubi && make -f node/Makefile $@ host=$*"
+	ssh $(nodeUser)@$* "cd /kubi && make -f node/Makefile --debug $@ host=$*"
 
 nodes/%/clean:
 	ssh $(nodeUser)@$* "cd /kubi; make -f node/Makefile clean host=$*"

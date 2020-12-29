@@ -10,7 +10,8 @@ After=network.target
 
 [Service]
 ExecStartPre=/sbin/modprobe overlay
-ExecStart=/kubi/bin/containerd
+ExecStart=/kubi/bin/containerd \
+  --config /kubi/etc/containerd/config.toml
 Restart=always
 RestartSec=5
 Delegate=yes
