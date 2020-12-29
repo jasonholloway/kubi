@@ -28,7 +28,7 @@ $n/crt:
 	cat node/hosts | sudo tee -a /etc/hosts
 
 
-$n/prep: $n/crt /etc/hosts $(etcdService) $(apiService) $(controllerService) $(schedulerService) $(containerdService)
+$n/prep: $n/crt /etc/hosts $(etcdService) $(apiService) $(controllerService) $(schedulerService) $(containerdService) $(kubeletService)
 
 
 clean:
@@ -36,6 +36,7 @@ clean:
 	sudo systemctl stop $(apiService)
 	sudo systemctl stop $(controllerService)
 	sudo systemctl stop $(schedulerService)
+	sudo systemctl stop $(kubeletService)
 	rm -rf $n etcd k8s var
 
 .PHONY: $n/prep
