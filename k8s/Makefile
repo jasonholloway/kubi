@@ -1,10 +1,16 @@
-bins:=kube-apiserver kube-controller-manager kube-scheduler kubectl kubelet kube-proxy
-binPaths:=$(foreach b,$(bins),bin/$(b))
 
-$(binPaths): k8s/version k8s/install.sh
-	k8s/install.sh
+k8s/encryption.key:
+	head -c 32 /dev/urandom | base64 > k8s/encryption.key
 
-k8s/done: $(binPaths) 
-	k8s/services.sh
-	touch k8s/done
+k8s/encryption.yaml: k8s/encryption.yaml.sh k8s/encryption.key
+	k8s/encryption.yaml.sh
+
+
+
+k8s/prep: k8s/encryption.yaml
+
+k8s/clean:
+	rm k8s/*.key
+	rm k8s/*.yaml
+
 

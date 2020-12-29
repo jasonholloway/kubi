@@ -2,17 +2,18 @@
 
 host=${host:?host not set}
 INTERNAL_IP=127.0.0.1
+name=kube-api
+  # --advertise-address=${INTERNAL_IP} \
 
-cat <<EOF | sudo tee /etc/systemd/system/kube-apiserver.service
+cat <<EOF | sudo tee /etc/systemd/system/${name}.service
 [Unit]
 Description=Kubernetes API Server
 Documentation=https://github.com/kubernetes/kubernetes
 
 [Service]
 ExecStart=/kubi/bin/kube-apiserver \
-  --advertise-address=${INTERNAL_IP} \
   --allow-privileged=true \
-  --apiserver-count=3 \
+  --apiserver-count=1 \
   --audit-log-maxage=30 \
   --audit-log-maxbackup=3 \
   --audit-log-maxsize=100 \
@@ -24,9 +25,9 @@ ExecStart=/kubi/bin/kube-apiserver \
   --etcd-cafile=/kubi/ca/crt \
   --etcd-certfile=/kubi/api/crt \
   --etcd-keyfile=/kubi/api/key \
-  --etcd-servers=https://127.0.0.1:2379 \
+  --etcd-servers=https://kubi:2379 \
   --event-ttl=1h \
-  --encryption-provider-config=/var/lib/kubernetes/encryption-config.yaml \
+  --encryption-provider-config=/kubi/k8s/encryption.yaml \
   --kubelet-certificate-authority=/kubi/ca/crt \
   --kubelet-client-certificate=/kubi/api/crt \
   --kubelet-client-key=/kubi/api/key \
@@ -45,3 +46,8 @@ RestartSec=5
 WantedBy=multi-user.target
 EOF
 
+sudo systemctl stop ${name}
+sudo systemctl disable ${name}
+sudo systemctl daemon-reload
+sudo systemctl enable ${name}
+sudo systemctl start ${name}

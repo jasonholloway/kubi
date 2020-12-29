@@ -23,7 +23,7 @@ ExecStart=/kubi/bin/etcd \
   --listen-client-urls https://127.0.0.1:2379,https://127.0.0.1:2379 \
   --advertise-client-urls https://127.0.0.1:2379 \
   --initial-cluster-token etcd-cluster-0 \
-  --initial-cluster ${host}=https://${host}:2380 \
+  --initial-cluster ${host}=https://127.0.0.1:2380 \
   --initial-cluster-state new \
   --data-dir=/kubi/var/etcd \
   --logger=zap

@@ -1,9 +1,8 @@
 n:=nodes/$(host)
 internalIP:=kubi.local
 
-include etcd/Makefile
-include k8s/Makefile
-include api/Makefile
+include node/etcd.mk
+include node/k8s.mk
 
 ca/crt:
 	test -f $@
@@ -24,10 +23,17 @@ $n/csr: $n/key
 $n/crt:
 	test -f $@
 
-$n/done: $n/crt node/hosts $(etcdService) k8s/done api/done
+/etc/hosts: node/hosts
 	cat node/hosts | sudo tee -a /etc/hosts
-	touch $@
+
+
+$n/prep: $n/crt /etc/hosts $(etcdService) $(apiService) $(controllerService) $(schedulerService)
 
 clean:
-	rm -rf $n etcd k8s
+	sudo systemctl stop $(etcdService)
+	sudo systemctl stop $(apiService)
+	sudo systemctl stop $(controllerService)
+	sudo systemctl stop $(schedulerService)
+	rm -rf $n etcd k8s var
 
+.PHONY: $n/prep

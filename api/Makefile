@@ -20,17 +20,3 @@ api/crt: api/csr
 		-out api/crt
 
 
-
-apiService:=kube-apiserver
-apiServicePath:=/etc/systemd/system/$(apiService).service
-
-$(apiServicePath): api/services.sh bin/kube-apiserver
-	host=$(host) internalIP=kubi api/services.sh
-
-api/done: $(apiServicePath)
-	sudo systemctl disable $(apiService)
-	sudo systemctl daemon-reload
-	sudo systemctl enable $(apiService)
-	sudo systemctl start $(apiService)
-	touch api/done
-

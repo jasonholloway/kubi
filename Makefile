@@ -2,18 +2,16 @@
 nodes:=puce.upis
 nodeUser:=kubi
 
-nodeDones:=$(foreach n,$(nodes),nodes/$(n)/done)
+nodeTargets:=$(foreach n,$(nodes),nodes/$(n)/prep)
 nodeCleans:=$(foreach n,$(nodes),nodes/$(n)/clean)
 
-done: ca $(nodeDones) certs
-	@echo $(nodeDones)
-	touch done
+prep: certs k8s/prep $(nodeTargets)
 
-
-certs: admin/crt manager/crt scheduler/crt
+certs: ca/crt admin/crt api/crt manager/crt scheduler/crt
 
 include ca/Makefile
 include api/Makefile
+include k8s/Makefile
 
 
 ###############################################################
@@ -125,7 +123,7 @@ nodes/%/crt: nodes/%/csr
 	$(syncOut)
 
 
-nodes/%/done: nodes/%/crt manager/crt scheduler/crt api/crt 
+nodes/%/prep: nodes/%/crt manager/crt scheduler/crt api/crt k8s/encryption.yaml
 	$(syncOut)
 	ssh $(nodeUser)@$* "cd /kubi && make -f node/Makefile $@ host=$*"
 
@@ -138,9 +136,11 @@ nodes/%/clean:
 ###############################################################
 # GENERAL
 
-clean: $(nodeCleans)
-	rm -rf done **/*crt **/*key **/*csr nodes
+clean: $(nodeCleans) k8s/clean
+	# rm -rf **/*crt **/*key **/*csr nodes
 
 
 # gruesomely needed to stop deletion of supposedly-intermediate files
 .SECONDARY:
+
+.PHONY: clean prep certs k8s/prep
