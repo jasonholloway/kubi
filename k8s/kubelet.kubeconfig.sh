@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 publicUrl=kubi
 host=${host:?host not set}

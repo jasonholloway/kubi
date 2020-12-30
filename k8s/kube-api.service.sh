@@ -12,13 +12,13 @@ Documentation=https://github.com/kubernetes/kubernetes
 
 [Service]
 ExecStart=/kubi/bin/kube-apiserver \
+  --authorization-mode=Node,RBAC \
   --allow-privileged=true \
   --apiserver-count=1 \
   --audit-log-maxage=30 \
   --audit-log-maxbackup=3 \
   --audit-log-maxsize=100 \
   --audit-log-path=/var/log/audit.log \
-  --authorization-mode=Node,RBAC \
   --bind-address=0.0.0.0 \
   --client-ca-file=/kubi/ca/crt \
   --enable-admission-plugins=NamespaceLifecycle,NodeRestriction,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota \

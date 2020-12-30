@@ -17,7 +17,7 @@ $n/key: $n/
 $n/csr: $n/key
 	openssl req -new -nodes \
 		-sha256 \
-		-subj "/O=system:nodes/CN=system:nodes:$(host)" \
+		-subj "/O=system:nodes/CN=system:node:$(host)" \
 		-key $n/key \
 		-out $n/csr
 

@@ -13,6 +13,7 @@ Requires=containerd.service
 
 [Service]
 ExecStart=/kubi/bin/kubelet \
+  --hostname-override=${host} \
   --config=/kubi/var/kubelet.yaml \
   --container-runtime=remote \
   --container-runtime-endpoint=unix://var/run/containerd/containerd.sock \

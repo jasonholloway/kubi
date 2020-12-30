@@ -8,13 +8,13 @@ kind: KubeletConfiguration
 apiVersion: kubelet.config.k8s.io/v1beta1
 authentication:
   anonymous:
-    enabled: false
+    enabled: true
   webhook:
     enabled: true
   x509:
     clientCAFile: "/kubi/ca/crt"
 authorization:
-  mode: Webhook
+  mode: AlwaysAllow
 clusterDomain: "kubi.local"
 clusterDNS:
   - "10.32.0.10"
