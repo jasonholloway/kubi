@@ -111,14 +111,13 @@ nodes/%/csr: ca/crt
 	ssh $(nodeUser_$*)@$(nodeUrl_$*) "cd /kubi && make -f node/Makefile $@ host=$*"
 	$(syncIn)
 
-nodes/%/crt: nodes/%/csr
+nodes/%/crt: nodes/%/csr nodes/%/csr.extensions
 	openssl x509 -req \
-		-sha256 \
 		-CA ca/crt \
 		-CAkey ca/key \
 		-days 9999 \
 		-set_serial 01 \
-		-extensions req_ext \
+		-extfile nodes/$*/csr.extensions \
 		-in nodes/$*/csr \
 		-out $@
 	$(syncOut)

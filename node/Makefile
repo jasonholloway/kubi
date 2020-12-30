@@ -14,10 +14,12 @@ $n/:
 $n/key: $n/
 	openssl genrsa -out $n/key 2048
 
-$n/csr: $n/key
+$n/csr.conf $n/csr.extensions: node/csr.conf.sh
+	host=$(host) node/csr.conf.sh
+
+$n/csr: $n/key $n/csr.conf
 	openssl req -new -nodes \
-		-sha256 \
-		-subj "/O=system:nodes/CN=system:node:$(host)" \
+		-config $n/csr.conf \
 		-key $n/key \
 		-out $n/csr
 
