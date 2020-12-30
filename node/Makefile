@@ -28,15 +28,26 @@ $n/crt:
 	cat node/hosts | sudo tee -a /etc/hosts
 
 
-$n/prep: $n/crt /etc/hosts $(etcdService) $(apiService) $(controllerService) $(schedulerService) $(containerdService) $(kubeletService)
+$n/prep: $n/crt /etc/hosts $(etcdServiceFile) $(apiServiceFile) $(controllerServiceFile) $(schedulerServiceFile) $(containerdServiceFile) $(kubeletServiceFile)
 
 
 clean:
-	sudo systemctl stop $(etcdService)
-	sudo systemctl stop $(apiService)
-	sudo systemctl stop $(controllerService)
-	sudo systemctl stop $(schedulerService)
-	sudo systemctl stop $(kubeletService)
-	rm -rf $n etcd k8s var
+	-sudo systemctl stop $(etcdService)
+	-sudo systemctl stop $(apiService)
+	-sudo systemctl stop $(controllerService)
+	-sudo systemctl stop $(schedulerService)
+	-sudo systemctl stop $(kubeletService)
+	-sudo systemctl disable $(etcdService)
+	-sudo systemctl disable $(apiService)
+	-sudo systemctl disable $(controllerService)
+	-sudo systemctl disable $(schedulerService)
+	-sudo systemctl disable $(kubeletService)
+	-sudo rm -f $(etcdServiceFile)
+	-sudo rm -f $(apiServiceFile)
+	-sudo rm -f $(controllerServiceFile)
+	-sudo rm -f $(schedulerServiceFile)
+	-sudo rm -f $(kubeletServiceFile)
+	-sudo systemctl daemon-reload
+	-sudo rm -rf $n etcd k8s var
 
 .PHONY: $n/prep

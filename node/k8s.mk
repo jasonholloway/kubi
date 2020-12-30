@@ -6,34 +6,33 @@ kubeletBin:=bin/kubelet
 kubectlBin:=bin/kubectl
 k8sBins:=$(apiBin) $(controllerBin) $(schedulerBin) $(proxyBin) $(kubeletBin) $(kubectlBin)
 
+apiService:=kube-api
+apiServiceSh:=k8s/$(apiService).service.sh
+apiServiceFile:=/etc/systemd/system/$(apiService).service
 
-apiServiceName:=kube-api
-apiServiceSh:=k8s/$(apiServiceName).service.sh
-apiService:=/etc/systemd/system/$(apiServiceName).service
+controllerService:=kube-controller-manager
+controllerServiceSh:=k8s/$(controllerService).service.sh
+controllerServiceFile:=/etc/systemd/system/$(controllerService).service
 
-controllerServiceName:=kube-controller-manager
-controllerServiceSh:=k8s/$(controllerServiceName).service.sh
-controllerService:=/etc/systemd/system/$(controllerServiceName).service
+schedulerService:=kube-scheduler
+schedulerServiceSh:=k8s/$(schedulerService).service.sh
+schedulerServiceFile:=/etc/systemd/system/$(schedulerService).service
 
-schedulerServiceName:=kube-scheduler
-schedulerServiceSh:=k8s/$(schedulerServiceName).service.sh
-schedulerService:=/etc/systemd/system/$(schedulerServiceName).service
+kubeletService:=kubelet
+kubeletServiceSh:=k8s/$(kubeletService).service.sh
+kubeletServiceFile:=/etc/systemd/system/$(kubeletService).service
 
-kubeletServiceName:=kubelet
-kubeletServiceSh:=k8s/$(kubeletServiceName).service.sh
-kubeletService:=/etc/systemd/system/$(kubeletServiceName).service
-
-k8sServices:=$(apiService) $(controllerService) $(schedulerService) $(kubeletService)
+k8sServiceFiles:=$(apiServiceFile) $(controllerServiceFile) $(schedulerServiceFile) $(kubeletServiceFile)
 
 
-$(apiService): $(apiBin) $(apiServiceSh) k8s/encryption.yaml
+$(apiServiceFile): $(apiBin) $(apiServiceSh) k8s/encryption.yaml
 	host=$(host) internalIP=kubi $(apiServiceSh)
 
 
 var/kube-controller-manager.kubeconfig: $(kubectlBin) k8s/kube-controller-manager.kubeconfig.sh
 	k8s/kube-controller-manager.kubeconfig.sh
 
-$(controllerService): $(controllerBin) $(controllerServiceSh) var/kube-controller-manager.kubeconfig
+$(controllerServiceFile): $(controllerBin) $(controllerServiceSh) var/kube-controller-manager.kubeconfig
 	host=$(host) internalIP=kubi $(controllerServiceSh)
 
 
@@ -43,18 +42,18 @@ var/kube-scheduler.kubeconfig: $(kubectlBin) k8s/kube-scheduler.kubeconfig.sh
 k8s/kube-scheduler.yaml: k8s/kube-scheduler.yaml.sh
 	k8s/kube-scheduler.yaml.sh
 
-$(schedulerService): $(schedulerBin) $(schedulerServiceSh) var/kube-scheduler.kubeconfig k8s/kube-scheduler.yaml
+$(schedulerServiceFile): $(schedulerBin) $(schedulerServiceSh) var/kube-scheduler.kubeconfig k8s/kube-scheduler.yaml
 	host=$(host) internalIP=kubi $(schedulerServiceSh)
 
 
 
-k8s/kubelet.yaml: k8s/kubelet.yaml.sh
+var/kubelet.yaml: k8s/kubelet.yaml.sh
 	host=$(host) k8s/kubelet.yaml.sh
 
 var/kubelet.kubeconfig: k8s/kubelet.kubeconfig.sh
 	host=$(host) k8s/kubelet.kubeconfig.sh
 
-$(kubeletService): $(kubeletBin) $(kubeletServiceSh) $(containerdService) k8s/kubelet.yaml var/kubelet.kubeconfig
+$(kubeletServiceFile): $(kubeletBin) $(kubeletServiceSh) $(containerdService) var/kubelet.yaml var/kubelet.kubeconfig
 	host=$(host) internalIP=kubi $(kubeletServiceSh)
 
 

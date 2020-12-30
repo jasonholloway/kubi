@@ -1,11 +1,12 @@
 etcdBinNames:=etcd etcdctl
 etcdBins:=$(foreach b,$(etcdBinNames),bin/$(b))
-etcdService:=/etc/systemd/system/etcd.service
+etcdService:=etcd
+etcdServiceFile:=/etc/systemd/system/$(etcdService).service
 
 $(etcdBins): etcd/version etcd/install.sh
 	etcd/install.sh
 
-$(etcdService): etcd/services.sh ca/crt api/crt api/key
+$(etcdServiceFile): etcd/services.sh ca/crt api/crt api/key
 	host=$(host) internalIP=kubi etcd/services.sh
 
 etcd/test:

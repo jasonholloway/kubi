@@ -1,6 +1,7 @@
 
-nodes:=puce.upis
-nodeUser:=kubi
+nodes:=puce
+nodeUrl_puce:=puce.upis
+nodeUser_puce:=kubi
 
 nodeTargets:=$(foreach n,$(nodes),nodes/$(n)/prep)
 nodeCleans:=$(foreach n,$(nodes),nodes/$(n)/clean)
@@ -102,12 +103,12 @@ manager/crt: manager/csr
 ###############################################################
 # NODES
 
-syncOut = rsync -rt --exclude 'ca/key' . $(nodeUser)@$*:/kubi
-syncIn = rsync -rt --exclude '*key' --exclude '*done' $(nodeUser)@$*:/kubi/nodes .
+syncOut = rsync -rt --exclude 'ca/key' . $(nodeUser_$*)@$(nodeUrl_$*):/kubi
+syncIn = rsync -rt --exclude '*key' --exclude '*done' $(nodeUser_$*)@$(nodeUrl_$*):/kubi/nodes .
 
 nodes/%/csr: ca/crt
 	$(syncOut)
-	ssh $(nodeUser)@$* "cd /kubi && make -f node/Makefile $@ host=$*"
+	ssh $(nodeUser_$*)@$(nodeUrl_$*) "cd /kubi && make -f node/Makefile $@ host=$*"
 	$(syncIn)
 
 nodes/%/crt: nodes/%/csr
@@ -125,10 +126,10 @@ nodes/%/crt: nodes/%/csr
 
 nodes/%/prep: nodes/%/crt manager/crt scheduler/crt api/crt k8s/encryption.yaml
 	$(syncOut)
-	ssh $(nodeUser)@$* "cd /kubi && make -f node/Makefile --debug $@ host=$*"
+	ssh $(nodeUser_$*)@$(nodeUrl_$*) "cd /kubi && make -f node/Makefile --debug $@ host=$*"
 
 nodes/%/clean:
-	ssh $(nodeUser)@$* "cd /kubi; make -f node/Makefile clean host=$*"
+	ssh $(nodeUser_$*)@$(nodeUrl_$*) "cd /kubi; make -f node/Makefile clean host=$*"
 
 
 
@@ -137,7 +138,7 @@ nodes/%/clean:
 # GENERAL
 
 clean: $(nodeCleans) k8s/clean
-	# rm -rf **/*crt **/*key **/*csr nodes
+	rm -rf **/*crt **/*csr nodes
 
 
 # gruesomely needed to stop deletion of supposedly-intermediate files
