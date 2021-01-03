@@ -6,7 +6,9 @@ nodeUser_puce:=kubi
 nodeTargets:=$(foreach n,$(nodes),nodes/$(n)/prep)
 nodeCleans:=$(foreach n,$(nodes),nodes/$(n)/clean)
 
-prep: certs k8s/prep $(nodeTargets)
+.PHONY: clean prep certs k8s/prep
+
+prep: certs k8s/prep $(nodeTargets) admin/kubeconfig
 
 certs: ca/crt admin/crt api/crt manager/crt scheduler/crt
 
@@ -41,6 +43,9 @@ admin/crt: admin/csr
 		-days 9999 \
 		-in admin/csr \
 		-out admin/crt
+
+admin/kubeconfig: ca/crt admin/crt admin/key admin/kubeconfig.sh
+	admin/kubeconfig.sh
 
 
 ###############################################################
@@ -143,4 +148,3 @@ clean: $(nodeCleans) k8s/clean
 # gruesomely needed to stop deletion of supposedly-intermediate files
 .SECONDARY:
 
-.PHONY: clean prep certs k8s/prep
