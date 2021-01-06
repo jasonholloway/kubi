@@ -1,6 +1,6 @@
 host=${host:?host not specified}
 
-cat <<EOF > nodes/${host}/csr.conf
+cat <<EOF > out/hosts/"${host}"/csr.conf
 [req]
 default_bits = 2048
 prompt = no
@@ -13,7 +13,7 @@ CN = system:node:${host}
 
 EOF
 
-cat <<EOF > nodes/${host}/csr.extensions
+cat <<EOF > out/hosts/"${host}"/csr.extensions
 keyUsage = keyEncipherment,dataEncipherment
 extendedKeyUsage = serverAuth,clientAuth
 subjectAltName = @alt_names

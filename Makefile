@@ -1,14 +1,14 @@
 
-nodes:=puce
-nodeUrl_puce:=puce.upis
-nodeUser_puce:=kubi
+hosts:=puce
+puce_url:=puce.upis
+puce_user:=kubi
 
-nodeTargets:=$(foreach n,$(nodes),nodes/$(n)/prep)
-nodeCleans:=$(foreach n,$(nodes),nodes/$(n)/clean)
+hostTargets:=$(foreach h,$(hosts),out/hosts/$(h)/prep)
+nodeCleans:=$(foreach h,$(hosts),out/hosts/$(h)/clean)
 
 .PHONY: clean prep certs k8s/prep
 
-prep: certs k8s/prep $(nodeTargets) admin/kubeconfig
+prep: certs k8s/prep $(hostTargets) admin/kubeconfig
 
 certs: ca/crt admin/crt api/crt manager/crt scheduler/crt
 
@@ -106,34 +106,40 @@ manager/crt: manager/csr
 
 
 ###############################################################
-# NODES
+# HOSTS
 
-syncOut = rsync -rt --exclude 'ca/key' . $(nodeUser_$*)@$(nodeUrl_$*):/kubi
-syncIn = rsync -rt --exclude '*key' --exclude '*done' $(nodeUser_$*)@$(nodeUrl_$*):/kubi/nodes .
+h:=out/hosts
+remoteRoot:=/kubi
 
-nodes/%/csr: ca/crt
+syncOut = rsync -rt --exclude 'ca/key' . $($*_user)@$($*_url):$(remoteRoot)
+syncIn = rsync -rt --exclude '*key' --exclude '*done' $($*_user)@$($*_url):$(remoteRoot)/$(h) .
+
+$(h)/%/:
+	mkdir -p $@
+
+$(h)/%/csr $(h)/%/csr.extensions: $(h)/%/ ca/crt
 	$(syncOut)
-	ssh $(nodeUser_$*)@$(nodeUrl_$*) "cd /kubi && make -f node/Makefile $@ host=$*"
+	ssh $($*_user)@$($*_url) "cd $(remoteRoot) && make -f host/Makefile $@ host=$*"
 	$(syncIn)
 
-nodes/%/crt: nodes/%/csr nodes/%/csr.extensions
+$(h)/%/crt: $(h)/%/csr $(h)/%/csr.extensions
 	openssl x509 -req \
 		-CA ca/crt \
 		-CAkey ca/key \
 		-days 9999 \
 		-set_serial 01 \
-		-extfile nodes/$*/csr.extensions \
-		-in nodes/$*/csr \
+		-extfile $(h)/$*/csr.extensions \
+		-in $(h)/$*/csr \
 		-out $@
 	$(syncOut)
 
 
-nodes/%/prep: nodes/%/crt manager/crt scheduler/crt api/crt k8s/encryption.yaml
+$(h)/%/prep: $(h)/%/crt manager/crt scheduler/crt api/crt k8s/encryption.yaml
 	$(syncOut)
-	ssh $(nodeUser_$*)@$(nodeUrl_$*) "cd /kubi && make -f node/Makefile --debug $@ host=$*"
+	ssh $(nodeUser_$*)@$(nodeUrl_$*) "cd $(remoteRoot) && make -f host/Makefile --debug $@ host=$*"
 
-nodes/%/clean:
-	ssh $(nodeUser_$*)@$(nodeUrl_$*) "cd /kubi; make -f node/Makefile clean host=$*"
+$(h)/%/clean:
+	ssh $(nodeUser_$*)@$(nodeUrl_$*) "cd $(remoteRoot); make -f host/Makefile clean host=$*"
 
 
 
@@ -142,7 +148,7 @@ nodes/%/clean:
 # GENERAL
 
 clean: $(nodeCleans) k8s/clean
-	rm -rf **/*crt **/*csr nodes
+	rm -rf **/*crt **/*csr $(h)
 
 
 # gruesomely needed to stop deletion of supposedly-intermediate files
