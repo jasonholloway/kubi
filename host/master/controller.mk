@@ -1,16 +1,57 @@
-services += controller
+serviceFile:=/etc/systemd/system/kube-controller.service
+kubeconfigFile:=out/var/controller.kubeconfig
 
-controllerServiceSh:=k8s/kube-controller-manager.service.sh
-controllerServiceFile:=/etc/systemd/system/kube-controller-manager.service
 
-dir:=master/controller
+cluster:=kubi
+user:=system:kube-controller-manager
 
-var/kube-controller-manager.kubeconfig: $(kubectlBin) k8s/kube-controller-manager.kubeconfig.sh
-	k8s/kube-controller-manager.kubeconfig.sh
+$(kubeconfigFile): $(kubectlBin)
+	kubectl config set-cluster $(cluster) \
+		--certificate-authority=$(abspath $(caCrtFile)) \
+		--embed-certs=true \
+		--server=https://kubi:6443 \
+		--kubeconfig=$@
+	kubectl config set-credentials $(user)\
+		--client-certificate=$(abspath $(controllerCrtFile)) \
+		--client-key=$(abspath $(controllerKeyFile)) \
+		--embed-certs=true \
+		--kubeconfig=$@
+	kubectl config set-context default \
+		--cluster=$(cluster) \
+		--user=$(user) \
+		--kubeconfig=$@
+	kubectl config use-context default \
+		--kubeconfig=$@
 
-$(controllerServiceFile): $(controllerBin) $(controllerServiceSh) var/kube-controller-manager.kubeconfig
-	host=$(host) internalIP=kubi $(controllerServiceSh)
 
-controllerTest:
+define serviceConfig
+[Unit]
+Description=Kubernetes Controller Manager
 
-controllerClean:
+[Service]
+ExecStart=$(abspath $(controllerBin)) \
+	--bind-address=0.0.0.0 \
+	--cluster-cidr=10.200.0.0/16 \
+	--service-cluster-ip-range=10.32.0.0/24 \
+	--cluster-name=kubi \
+	--cluster-signing-cert-file=$(abspath $(apiCrtFile)) \
+	--cluster-signing-key-file=$(abspath $(apiKeyFile)) \
+	--kubeconfig=$(abspath $(kubeconfigFile)) \
+	--leader-elect=true \
+	--root-ca-file=$(abspath $(caCrtFile)) \
+	--service-account-private-key-file=$(abspath $(apiKeyFile)) \
+	--use-service-account-credentials=true \
+	--v=2
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+endef
+
+$(serviceFile): $(controllerBin) $(kubeconfigFile)
+	$(file > $@,$(serviceConfig))
+
+
+services += kube-controller
+files += $(serviceFile) $(kubeconfigFile)

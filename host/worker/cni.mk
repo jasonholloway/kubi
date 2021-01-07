@@ -1,12 +1,21 @@
-
+cniBinPath:=bin/cni
 cniBinNames:=bandwidth dhcp flannel host-local loopback portmap sbr tuning bridge firewall host-device ipvlan ptp static vlan
-cniBins:=$(foreach n,$(cniBinNames),opt/cni/bin/$(n))
+cniBinFiles:=$(foreach n,$(cniBinNames),$(cniBinPath)/$(n))
 
-cniNetworkNames:=10-bridge 99-loopback
-cniNetworkConfigs:=$(foreach n,$(cniNetworkNames),etc/cni/net.d/${n}.conf)
+v:=0.8.6
+name:=cni-plugins-linux-amd64-v$(v)
+url:=https://github.com/containernetworking/plugins/releases/download/v$(v)/$(name).tgz
+tmp:=$(shell mktemp -d)
 
-$(cniBins): oci/cni.sh
-	oci/cni.sh
+$(cniBinFiles):
+	cd $(tmp) \
+	&& wget $(url) \
+	&& tar xzf $(name).tgz && rm $(name).tgz \
+	&& chmod +x ./* \
+	&& touch ./* \
+	&& mkdir -p $(cniBinPath) \
+	&& mv $(tmp)/* $(cniBinPath)/
+	rm -rf $(tmp)
 
-$(cniNetworkConfigs): oci/cni-networks.sh
-	oci/cni-networks.sh
+
+binFiles += $(cniBinFiles)

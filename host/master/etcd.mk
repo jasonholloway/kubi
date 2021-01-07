@@ -1,26 +1,70 @@
-services += etcd
+serviceFile:=/etc/systemd/system/etcd.service
+etcdDataDir:=out/var/etcd
 
-etcdServiceFile:=/etc/systemd/system/etcd.service
+binPath:=out/bin
+etcdBins:=etcd etcdctl
+etcdBinFiles:=$(foreach b,$(etcdBins),$(binPath)/$(b))
 
-etcdBinNames:=etcd etcdctl
-etcdBins:=$(foreach b,$(etcdBinNames),bin/$(b))
+v:=3.4.10
+name=etcd-v$(v)-linux-amd64
+url=https://github.com/etcd-io/etcd/releases/download/v$(v)/$(name).tar.gz
+tmp=$(mktemp -d)
 
-etcdDir:=master/etcd
+$(etcdBinFiles): 
+	cd $(tmp) \
+	&& wget $(url) -C $(tmp) \
+	&& tar xzf $(name).tar.gz $(foreach b,$(etcdBins),$(name)/$(b)) \
+	&& chmod +x etcd*/* \
+	&& touch etcd*/* \
+	&& mv etcd*/* $(abspath $(binPath))/ \
+	&& rm -f $(tmp)
 
-$(etcdBins): $(etcdDir)/version $(etcdDir)/install.sh
-	etcd/install.sh
 
-$(etcdServiceFile): $(etcdDir)/services.sh ca/crt api/crt api/key
-	host=$(host) internalIP=kubi etcd/services.sh
+define serviceConf
+[Unit]
+Description=etcd
+
+[Service]
+Type=notify
+ExecStart=$(abspath $(binPath)/etcd) \
+	--name $(host) \
+	--trusted-ca-file=$(abspath $(caCrtFile)) \
+	--peer-trusted-ca-file=$(abspath $(caCrtFile)) \
+	--cert-file=$(abspath $(apiCrtFile)) \
+	--key-file=$(abspath $(apiKeyFile)) \
+	--peer-cert-file=$(abspath $(apiCrtFile)) \
+	--peer-key-file=$(abspath $(apiKeyFile)) \
+	--peer-client-cert-auth \
+	--client-cert-auth \
+	--initial-advertise-peer-urls https://127.0.0.1:2380 \
+	--listen-peer-urls https://127.0.0.1:2380 \
+	--listen-client-urls https://127.0.0.1:2379,https://127.0.0.1:2379 \
+	--advertise-client-urls https://127.0.0.1:2379 \
+	--initial-cluster-token etcd-cluster-0 \
+	--initial-cluster $(host)=https://127.0.0.1:2380 \
+	--initial-cluster-state new \
+	--data-dir=$(abspath $(etcdDataDir)) \
+	--logger=zap
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+endef
+
+$(serviceFile): $(caCrtFile) $(apiCrtFile) $(apiKeyFile) $(etcdBinFiles)
+	$(file > $@,$(serviceConf))
+
 
 etcdTest:
 	sudo ETCDCTL_API=3 etcdctl member list \
 		--endpoints=https://kubi:2379 \
-		--cacert=/kubi/ca/crt \
-		--cert=/kubi/api/crt \
-		--key=/kubi/api/key
+		--cacert=$(caCrtFile) \
+		--cert=$(apiCrtFile) \
+		--key=$(apiKeyFile)
 
-etcdClean:
-	-sudo systemctl stop etcd
-	-sudo systemctl disable etcd
-	-rm -rf $(etcdServiceFile)
+
+services += etcd
+binFiles += $(etcdBinFiles)
+files += $(serviceFile)
+tests += etcdTest

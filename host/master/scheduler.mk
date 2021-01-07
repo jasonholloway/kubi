@@ -1,24 +1,62 @@
-services += scheduler
+serviceFile:=/etc/systemd/system/kube-scheduler.service
+kubeconfigFile:=out/etc/scheduler.kubeconfig
+configFile:=out/etc/scheduler.yaml
 
-schedulerServiceSh:=k8s/kube-scheduler.service.sh
-schedulerServiceFile:=/etc/systemd/system/kube-scheduler.service
+cluster:=kubi
+user:=system:kube-scheduler
 
-dir:=master/scheduler
+$(kubeconfigFile): $(kubectlBin)
+	kubectl config set-cluster $(cluster) \
+		--certificate-authority=$(abspath $(caCrtFile)) \
+		--embed-certs=true \
+		--server=https://kubi:6443 \
+		--kubeconfig=$@
+	kubectl config set-credentials $(user) \
+		--client-certificate=$(abspath $(schedulerCrtFile)) \
+		--client-key=$(abspath $(schedulerKeyFile)) \
+		--embed-certs=true \
+		--kubeconfig=$@
+	kubectl config set-context default \
+		--cluster=$(cluster) \
+		--user=$(user) \
+		--kubeconfig=$@
+	kubectl config use-context default \
+		--kubeconfig=$@
 
-var/kube-scheduler.kubeconfig: $(kubectlBin) k8s/kube-scheduler.kubeconfig.sh
-	k8s/kube-scheduler.kubeconfig.sh
 
-k8s/kube-scheduler.yaml: k8s/kube-scheduler.yaml.sh
-	k8s/kube-scheduler.yaml.sh
 
-$(schedulerServiceFile): $(schedulerBin) $(schedulerServiceSh) var/kube-scheduler.kubeconfig k8s/kube-scheduler.yaml
-	host=$(host) internalIP=kubi $(schedulerServiceSh)
+define k8sConfig
+apiVersion: kubescheduler.config.k8s.io/v1alpha1
+kind: KubeSchedulerConfiguration
+clientConnection:
+	kubeconfig: $(abspath $(kubeconfigFile))
+leaderElection:
+	leaderElect: true
+endef
 
-schedulerTest:
+$(configFile): $(kubeconfigFile)
+	$(file > $@,$(k8sConfig))
 
-schedulerClean:
-	-sudo systemctl stop kube-scheduler
-	-sudo systemctl disable kube-scheduler
-	-rm -rf $(schedulerServiceFile)
-	-sudo systemctl daemon-reload
 
+
+define serviceConf
+[Unit]
+Description=Kubernetes Scheduler
+
+[Service]
+ExecStart=$(abspath $(schedulerBin)) \
+	--config=$(abspath $(configFile)) \
+	--v=2
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+endef
+
+$(serviceFile): $(schedulerBin) $(configFile)
+	$(file > $@,$(serviceConf))
+
+
+services += kube-scheduler
+files += $(serviceFile) $(configfile) $(kubeconfigFile)
