@@ -12,40 +12,12 @@ prep: certs k8s/prep $(hostTargets) admin/kubeconfig
 
 certs: ca/crt admin/crt api/crt manager/crt scheduler/crt
 
-include ca/Makefile
+include hub/ca/Makefile
+
 include api/Makefile
 include k8s/Makefile
 
 
-###############################################################
-# ADMIN
-
-admin/:
-	mkdir -p admin || true
-
-admin/key: admin/
-	openssl genrsa -out admin/key 2048
-
-admin/csr: admin/key
-	openssl req -new -nodes \
-		-sha256 \
-		-subj "/O=system:masters/CN=kubi-admin" \
-		-key admin/key \
-		-out admin/csr
-
-admin/crt: admin/csr
-	openssl x509 -req \
-		-sha256 \
-		-CA ca/crt \
-		-CAkey ca/key \
-		-set_serial 01 \
-		-extensions req_ext \
-		-days 9999 \
-		-in admin/csr \
-		-out admin/crt
-
-admin/kubeconfig: ca/crt admin/crt admin/key admin/kubeconfig.sh
-	admin/kubeconfig.sh
 
 
 ###############################################################
