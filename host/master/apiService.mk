@@ -9,7 +9,7 @@ define apiService
 Description=Kubernetes API Server
 
 [Service]
-ExecStart=/kubi/bin/kube-apiserver \
+ExecStart=$(abspath $(apiBin)) \
   --authorization-mode=Node,RBAC \
   --allow-privileged=true \
   --apiserver-count=1 \
@@ -18,9 +18,9 @@ ExecStart=/kubi/bin/kube-apiserver \
   --audit-log-maxsize=100 \
   --audit-log-path=/var/log/audit.log \
   --bind-address=0.0.0.0 \
-  --client-ca-file=/kubi/ca/crt \
+  --client-ca-file=$(abspath $(caCrtFile)) \
   --enable-admission-plugins=NamespaceLifecycle,NodeRestriction,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota \
-  --etcd-cafile=/kubi/ca/crt \
+  --etcd-cafile=$(abspath $(caCrtFile)) \
   --etcd-certfile=/kubi/api/crt \
   --etcd-keyfile=/kubi/api/key \
   --etcd-servers=https://kubi:2379 \

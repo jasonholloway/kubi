@@ -1,4 +1,3 @@
-
 hosts:=puce
 puce_url:=puce.upis
 puce_user:=kubi
@@ -12,11 +11,7 @@ prep: certs k8s/prep $(hostTargets) admin/kubeconfig
 
 certs: ca/crt admin/crt api/crt manager/crt scheduler/crt
 
-include hub/ca/Makefile
-
-include api/Makefile
-include k8s/Makefile
-
+include hub/*.mk
 
 
 
