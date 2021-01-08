@@ -9,12 +9,12 @@ k8sBinUrls:=$(foreach b,$(bins),$(url)/$(b))
 tmp=$(mktemp -d)
 
 $(k8sBinFiles):
-  cd $(tmp) \
-  && wget --show-progress --timestamping $(k8sBinUrls) \
-  && chmod +x * \
-  && mkdir -p $(binPath) \
-  && mv * $(binPath)/ 
-  rm -rf $(tmp)
+	cd $(tmp) \
+	&& wget --show-progress --timestamping $(k8sBinUrls) \
+	&& chmod +x * \
+	&& mkdir -p $(binPath) \
+	&& mv * $(binPath)/ 
+	rm -rf $(tmp)
 
 kubectlBin:=$(binPath)/kubectl
 kubeletBin:=$(binPath)/kubelet

@@ -9,12 +9,12 @@ k8sBinUrls:=$(foreach b,$(bins),$(url)/$(b))
 tmp=$(mktemp -d)
 
 $(k8sBinFiles):
-  cd $(tmp) \
-  && wget --show-progress --timestamping $(k8sBinUrls) \
-  && chmod +x * \
-  && mkdir -p $(binPath) \
-  && mv * $(binPath)/ 
-  rm -rf $(tmp)
+	cd $(tmp) \
+	&& wget --show-progress --timestamping $(k8sBinUrls) \
+	&& chmod +x * \
+	&& mkdir -p $(binPath) \
+	&& mv * $(binPath)/ 
+	rm -rf $(tmp)
 
 apiBin:=$(binPath)/kube-apiserver
 controllerBin:=$(binPath)/kube-controller-manager

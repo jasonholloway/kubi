@@ -1,12 +1,12 @@
 mkFile:=$(abspath $(lastword $(MAKEFILE_LIST)))
-keyFile=out/etc/ca.key
-crtFile=out/etc/ca.crt
+caKeyFile=out/etc/ca.key
+caCrtFile=out/etc/ca.crt
 
 
 define crtConf
 [req]
-default_bits       = 2048
-x509_extensions    = v3_ca
+default_bits			 = 2048
+x509_extensions		 = v3_ca
 distinguished_name = dn
 prompt = no
 
@@ -14,25 +14,25 @@ prompt = no
 CN = kubi-ca
 
 [v3_ca]
-basicConstraints        = critical, CA:TRUE
-subjectKeyIdentifier    = hash
-authorityKeyIdentifier  = keyid:always, issuer:always
-keyUsage                = critical, cRLSign, digitalSignature, keyCertSign, keyEncipherment
-extendedKeyUsage        = serverAuth, clientAuth
+basicConstraints				= critical, CA:TRUE
+subjectKeyIdentifier		= hash
+authorityKeyIdentifier	= keyid:always, issuer:always
+keyUsage								= critical, cRLSign, digitalSignature, keyCertSign, keyEncipherment
+extendedKeyUsage				= serverAuth, clientAuth
 endef
 
 
-$(keyFile): 
+$(caKeyFile): 
 	openssl genrsa -out $@ 2048
 
-$(crtFile): $(keyFile) $(mkFile)
+$(caCrtFile): $(caKeyFile) $(mkFile)
 	openssl req \
 		-config <(echo "$(crtConf)") \
 		-x509 -new -nodes \
-		-key $(keyFile) \
+		-key $(caKeyFile) \
 		-days 100000 \
 		-out $@
 
 
-files += $(crtFile)
-keyFiles += $(keyFile)
+files += $(caCrtFile)
+keyFiles += $(caKeyFile)

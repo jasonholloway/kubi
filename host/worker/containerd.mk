@@ -22,21 +22,21 @@ $(binFile): $(gzFile)
 
 define config
 [grpc]
-  address = "/run/containerd/containerd.sock"
+	address = "/run/containerd/containerd.sock"
 
 [debug]
-  address = "/run/containerd/debug.sock"
+	address = "/run/containerd/debug.sock"
 
 [plugins.cri.containerd]
-  snapshotter = "overlayfs"
-  [plugins.cri.containerd.default_runtime]
-    runtime_type = "io.containerd.runtime.v1.linux"
-    runtime_engine = "/kubi/bin/runc"
-    runtime_root = ""
+	snapshotter = "overlayfs"
+	[plugins.cri.containerd.default_runtime]
+		runtime_type = "io.containerd.runtime.v1.linux"
+		runtime_engine = "/kubi/bin/runc"
+		runtime_root = ""
 
 [plugins.cri.cni]
-  bin_dir = "/kubi/opt/cni/bin"
-  conf_dir = "/kubi/etc/cni/net.d"
+	bin_dir = "/kubi/opt/cni/bin"
+	conf_dir = "/kubi/etc/cni/net.d"
 endef
 
 $(configFile): $(mkFile)
@@ -53,7 +53,7 @@ After=network.target
 [Service]
 ExecStartPre=/sbin/modprobe overlay
 ExecStart=/kubi/bin/containerd \
-  --config /kubi/etc/containerd/config.toml
+	--config /kubi/etc/containerd/config.toml
 Restart=always
 RestartSec=5
 Delegate=yes
