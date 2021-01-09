@@ -1,9 +1,7 @@
 mkFile:=$(abspath $(lastword $(MAKEFILE_LIST)))
-keyFile=out/etc/ca.key
-crtFile=out/etc/ca.crt
+keyFile=out/etc/admin.key
+crtFile=out/etc/admin.crt
 kubeconfigFile:=out/etc/admin.kubeconfig
-caCrtFile:=out/etc/ca.crt
-caKeyFile:=out/etc/ca.key
 
 
 $(keyFile): 

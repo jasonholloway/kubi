@@ -1,7 +1,8 @@
 mkFile:=$(abspath $(lastword $(MAKEFILE_LIST)))
-keyFile:=out/etc/encyption.key
+keyFile:=out/etc/encryption.key
 
 $(keyFile):
+	mkdir -p $(@D)
 	head -c 32 /dev/urandom | base64 > $@
 
 

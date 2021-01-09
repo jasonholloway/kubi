@@ -11,4 +11,4 @@ test: $(tests)
 stop: $(stops)
 
 clean: $(cleans)
-	rm -f $(files)
+	sudo rm -f $(files)

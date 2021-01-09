@@ -1,10 +1,10 @@
 
 reloadServices: $(foreach s,$(services),$($(s)ServiceFile))
-	systemctl daemon-reload
+	sudo systemctl daemon-reload
 
 startService/%: reloadServices
-	systemctl enable $*
-	systemctl start $*
+	sudo systemctl enable $*
+	sudo systemctl start $*
 
 
 startServices: $(foreach s,$(services),startService/$(s)) 
@@ -13,11 +13,11 @@ startServices: $(foreach s,$(services),startService/$(s))
 
 
 stopService/%:
-	systemctl stop $*
-	systemctl disable $*
+	sudo systemctl stop $*
+	sudo systemctl disable $*
 
 stopServices: $(foreach s,$(services),stopService/$(s))
-	systemctl daemon-reload
+	sudo systemctl daemon-reload
 
 
 starts += startServices

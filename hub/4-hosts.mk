@@ -3,8 +3,8 @@ puce_url:=puce.upis
 puce_user:=kubi
 
 remoteRoot:=/kubi
-syncOut=rsync -rt --exclude 'ca/key' . $($*_user)@$($*_url):$(remoteRoot)
-syncIn=rsync -rt --exclude '*key' --exclude '*done' $($*_user)@$($*_url):$(remoteRoot)/$(h) .
+syncOut=rsync -rt --exclude '*key' . $($*_user)@$($*_url):$(remoteRoot)
+syncIn=rsync -rt --exclude '*key' $($*_user)@$($*_url):$(remoteRoot)/out .
 
 
 prepHost/%: $(caCrtFile)
