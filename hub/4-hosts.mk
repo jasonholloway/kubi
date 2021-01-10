@@ -3,41 +3,64 @@ puce_url:=puce.upis
 puce_user:=kubi
 
 remoteRoot:=/kubi
-syncOut=rsync -rt --exclude '*key' . $($*_user)@$($*_url):$(remoteRoot)
-syncIn=rsync -rt --exclude '*key' $($*_user)@$($*_url):$(remoteRoot)/out .
+caCrtFile:=out/etc/ca.crt
 
 
-prepHost/%: $(caCrtFile)
+define perHostOuter
+
+root:=out/hosts/$(h)
+prepped:=$$(root)/prepped
+started:=$$(root)/started
+clean:=$$(root)/clean
+crtFile:=out/etc/$(h).crt
+csrFile:=out/etc/$(h).csr
+csrExtFile:=out/etc/$(h).csr.ext
+
+sshHost:=$($(h)_user)@$($(h)_url)
+syncOut:=rsync -rplt -F . $$(sshHost):$(remoteRoot)/
+syncIn:=rsync -rplt -F $$(sshHost):$(remoteRoot)/ .
+ssh=ssh $$(sshHost) "cd $(remoteRoot) && make -d host=$(h) -f host/Makefile $(1)"
+
+$$(eval $$(perHostInner))
+endef
+
+
+define perHostInner
+
+$(prepped): $(caCrtFile)
+	mkdir -p $$(@D)
 	$(syncOut)
-	ssh $($*_user)@$($*_url) "cd $(remoteRoot) && make -f host/Makefile prep host=$*"
+	$(call ssh,prep)
 	$(syncIn)
 
 
-startHost/%: out/etc/%.crt
+$(started): $(crtFile)
+	mkdir -p $$(@D)
 	$(syncOut)
-	ssh $($*_user)@$($*_url) "cd $(remoteRoot) && make -f host/Makefile start host=$*"
+	$(call ssh,start)
 	$(syncIn)
 
 
-cleanHost/%:
-	$(syncOut)
-	ssh $($*_user)@$($*_url) "cd $(remoteRoot) && make -f host/Makefile clean host=$*"
-	$(syncIn)
+$(clean):
+	$(call ssh,clean)
+	rm -rf $(root)
 
 
-
-preps += $(foreach h,$(hosts),prepHost/$(h))
-starts += $(foreach h,$(hosts),startHost/$(h))
-cleans += $(foreach h,$(hosts),cleanHost/$(h))
-
-
-out/etc/%.crt: out/etc/%.csr out/etc/%.csr.ext
+$(crtFile): $(csrFile) $(csrExtFile)
 	openssl x509 -req \
 		-CA $(caCrtFile) \
 		-CAkey $(caKeyFile) \
 		-days 9999 \
 		-set_serial 01 \
-		-extfile out/etc/$*.csr.ext \
-		-in out/etc/$*.csr \
-		-out $@
+		-extfile $(csrExtFile) \
+		-in $(csrFile) \
+		-out $$@
 
+files += $(crtFile) $(prepped) $(started)
+preps += $(prepped)
+starts += $(started)
+cleans += $(clean)
+
+endef
+
+$(foreach h,$(hosts),$(eval $(perHostOuter)))

@@ -1,5 +1,13 @@
+MAKEFLAGS += -r -R
+SHELL:=/bin/bash
+.DEFAULT_GOAL:=prep
 
-include hub/*.mk
+preps:=
+starts:=
+files:=
+cleans:=
+
+include $(sort $(wildcard hub/*.mk))
 
 prep: $(preps)
 
@@ -18,5 +26,4 @@ out/var:
 
 
 # gruesomely needed to stop deletion of supposedly-intermediate files
-.SECONDARY:
 

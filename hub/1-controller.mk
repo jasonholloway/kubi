@@ -1,18 +1,23 @@
 mkFile:=$(abspath $(lastword $(MAKEFILE_LIST)))
-keyFile=out/etc/controller.key
-crtFile=out/etc/controller.crt
+keyFile:=out/etc/controller.key
+csrFile:=out/etc/controller.csr
+crtFile:=out/etc/controller.crt
+
+define module
+
 
 $(keyFile):
-	openssl genrsa -out $@ 2048
+	mkdir -p $$(@D)
+	openssl genrsa -out $$@ 2048
 
-csr=$(shell \
+$(csrFile): $(keyFile)
 	openssl req -new -nodes \
 		-sha256 \
 		-subj "/O=system:kube-controller-manager/CN=system:kube-controller-manager" \
 		-key $(keyFile) \
-		-out $@)
+		-out $$@
 
-$(crtFile): $(keyFile) $(caCrtFile) $(caKeyFile)
+$(crtFile): $(csrFile) $(caCrtFile) $(caKeyFile)
 	openssl x509 -req \
 		-sha256 \
 		-CA $(caCrtFile) \
@@ -20,9 +25,14 @@ $(crtFile): $(keyFile) $(caCrtFile) $(caKeyFile)
 		-set_serial 01 \
 		-extensions req_ext \
 		-days 9999 \
-		-in <(echo "$(csr)") \
-		-out $@
+		-in $(csrFile) \
+		-out $$@
 
 
-files += $(crtFile)
+preps += $(crtFile)
+files += $(crtFile) $(csrFile)
 keyFiles += $(keyFile)
+
+endef
+
+$(eval $(module))

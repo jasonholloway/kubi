@@ -1,9 +1,12 @@
 mkFile:=$(abspath $(lastword $(MAKEFILE_LIST)))
 keyFile:=out/etc/encryption.key
+yamlFile:=out/etc/encryption.yaml
+
+define module
 
 $(keyFile):
-	mkdir -p $(@D)
-	head -c 32 /dev/urandom | base64 > $@
+	mkdir -p $$(@D)
+	head -c 32 /dev/urandom | base64 > $$@
 
 
 define yaml
@@ -16,16 +19,19 @@ resources:
 			- aescbc:
 					keys:
 						- name: key1
-							secret: $(key)
+							secret: $$(key)
 			- identity: {}
 endef
 
-yamlFile:=out/etc/encryption.yaml
 
-$(yamlFile): key=$(file < $(keyFile))
+$(yamlFile): key=$$(file < $(keyFile))
 $(yamlFile): $(keyFile) $(mkFile)
-	$(file > $@,$(yaml))
+	$$(file > $$@,$$(yaml))
 
 
 files += $(yamlFile)
 keyFiles += $(keyFile)
+
+endef
+
+$(eval $(module))

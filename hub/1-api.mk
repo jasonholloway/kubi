@@ -1,9 +1,14 @@
 mkFile:=$(abspath $(lastword $(MAKEFILE_LIST)))
+keyFile:=out/etc/api.key
+csrConfFile:=out/etc/api.csr.conf
+csrFile:=out/etc/api.csr
+crtFile:=out/etc/api.crt
 
-out:=out/etc
-keyFile:=$(out)/api.key
-csrFile:=$(out)/api.csr
-crtFile:=$(out)/api.crt
+define module
+
+$(keyFile):
+	mkdir -p $$(@D)
+	openssl genrsa -out $$@ 2048
 
 
 define csrConf
@@ -29,17 +34,17 @@ DNS.4 = puce.upis
 endef
 
 
-$(keyFile):
-	openssl genrsa -out $@ 2048
+$(csrConfFile):
+	mkdir -p $$(@D)
+	$$(file > $$@,$$(csrConf))
 
-export csrConf
-$(csrFile): $(keyFile) $(mkFile)
-	openssl req -new \
-		-config <(echo "$$csrConf") \
+$(csrFile): $(keyFile) $(csrConfFile)
+	openssl req -new -nodes \
 		-key $(keyFile) \
-		-out $@
+		-config $(csrConfFile) \
+		-out $$@
 
-$(crtFile): $(csrFile)
+$(crtFile): $(csrFile) $(caCrtFile) $(caKeyFile)
 	openssl x509 -req \
 		-sha256 \
 		-CA $(caCrtFile) \
@@ -48,8 +53,13 @@ $(crtFile): $(csrFile)
 		-extensions req_ext \
 		-days 9999 \
 		-in $(csrFile) \
-		-out $@
+		-out $$@
 
 
+preps += $(crtFile)
+files += $(crtFile)
 keyFiles += $(keyFile)
-files += $(crtFile) $(csrFile)
+
+endef
+
+$(eval $(module))

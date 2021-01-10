@@ -1,6 +1,9 @@
 mkFile:=$(abspath $(lastword $(MAKEFILE_LIST)))
-caKeyFile=out/etc/ca.key
-caCrtFile=out/etc/ca.crt
+keyFile:=out/etc/ca.key
+crtConfFile:=out/etc/ca.crt.conf
+crtFile:=out/etc/ca.crt
+
+define module
 
 
 define crtConf
@@ -22,17 +25,29 @@ extendedKeyUsage				= serverAuth, clientAuth
 endef
 
 
-$(caKeyFile): 
-	openssl genrsa -out $@ 2048
+$(keyFile): 
+	mkdir -p $$(@D)
+	openssl genrsa -out $$@ 2048
 
-$(caCrtFile): $(caKeyFile) $(mkFile)
+$(crtConfFile):
+	$$(file > $$@,$$(crtConf))
+
+$(crtFile): $(keyFile) $(crtConfFile)
 	openssl req \
-		-config <(echo "$(crtConf)") \
+		-config $(crtConfFile) \
 		-x509 -new -nodes \
-		-key $(caKeyFile) \
+		-key $(keyFile) \
 		-days 100000 \
-		-out $@
+		-out $$@
 
 
-files += $(caCrtFile)
-keyFiles += $(caKeyFile)
+caKeyFile:=$(keyFile)
+caCrtFile:=$(crtFile)
+
+files += $(crtFile)
+keyFiles += $(keyFile)
+
+
+endef
+
+$(eval $(module))

@@ -1,27 +1,37 @@
 mkFile:=$(abspath $(lastword $(MAKEFILE_LIST)))
-keyFile=out/etc/schduler.key
-crtFile=out/etc/scheduler.crt
+keyFile:=out/etc/scheduler.key
+csrFile:=out/etc/scheduler.csr
+crtFile:=out/etc/scheduler.crt
+
+define module
 
 $(keyFile):
-	openssl genrsa -out $@ 2048
+	mkdir -p $$(@D)
+	openssl genrsa -out $$@ 2048
 
-csr=$(shell \
+$(csrFile): $(keyFile)
 	openssl req -new -nodes \
 		-sha256 \
 		-subj "/O=system:kube-scheduler/CN=system:kube-scheduler" \
 		-key $(keyFile) \
-		-out $@)
+		-out $$@
 
-$(crtFile): $(keyFile) $(caCrtFile) $(caKeyFile)
+$(crtFile): $(csrFile) $$(caCrtFile) $$(caKeyFile)
 	openssl x509 -req \
 		-sha256 \
-		-CA $(caCrtFile) \
-		-CAkey $(caKeyFile) \
+		-CA $$(caCrtFile) \
+		-CAkey $$(caKeyFile) \
 		-set_serial 01 \
 		-extensions req_ext \
 		-days 9999 \
-		-in <(echo "$(csr)") \
-		-out $@
+		-in $(csrFile) \
+		-out $$@
 
-files += $(crtFile)
+
+preps += $(crtFile)
+files += $(crtFile) $(csrFile)
 keyFiles += $(keyFile)
+
+endef
+
+$(eval $(module))

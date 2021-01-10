@@ -8,7 +8,9 @@ hostCrtFile:=out/etc/$(host).crt
 $(caCrtFile):
 	test -f $@
 
-$(hostKeyfile):
+$(hostKeyFile):
+	mkdir -p $(@D)
+	echo BIG POO $$(hostname) >&2
 	openssl genrsa -out $@ 2048
 
 
@@ -21,7 +23,7 @@ distinguished_name = dn
 
 [dn]
 O = system:nodes
-CN = system:node:${host}
+CN = system:node:$(host)
 endef 
 
 
@@ -31,13 +33,14 @@ extendedKeyUsage = serverAuth,clientAuth
 subjectAltName = @alt_names
 
 [alt_names]
-DNS.1 = ${host}
+DNS.1 = $(host)
 endef
 
 
+export csrConf
 $(hostCsrFile): $(hostKeyFile) $(hostCsrExtFile)
 	openssl req -new -nodes \
-		-config <(echo "$(csrConf)") \
+		-config <(echo "$$csrConf") \
 		-key $(hostKeyFile) \
 		-out $@
 
