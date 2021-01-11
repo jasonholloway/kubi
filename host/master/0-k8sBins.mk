@@ -1,5 +1,4 @@
 bins:=kube-apiserver kube-controller-manager kube-scheduler
-binPath:=out/bin
 k8sBinFiles:=$(foreach b,$(bins),$(binPath)/$(b))
 
 v=1.18.6
@@ -20,4 +19,5 @@ apiBin:=$(binPath)/kube-apiserver
 controllerBin:=$(binPath)/kube-controller-manager
 schedulerBin:=$(binPath)/kube-scheduler
 
+preps += $(k8sBinFiles)
 binFiles += $(k8sBinFiles)

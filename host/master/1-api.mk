@@ -1,10 +1,11 @@
 mkFile:=$(abspath $(lastword $(MAKEFILE_LIST)))
-apiServiceFile:=/etc/systemd/system/kube-api.service
+serviceName:=kube-api
+serviceFile:=$(out)/systemd/$(serviceName).service
 
 # note below removed for some reason
 # --advertise-address=$(internalIp)
 
-define apiService
+define apiServiceConf
 [Unit]
 Description=Kubernetes API Server
 
@@ -44,9 +45,16 @@ RestartSec=5
 WantedBy=multi-user.target
 endef
 
-$(apiServiceFile): $(apiBin) k8s/encryption.yaml $(mkFile)
-	$(file > $@,$(apiService))
 
+define module
 
-services += api
-files += $(apiServiceFile)
+$(serviceFile): $(servicePath)/ $(apiBin) out/etc/encryption.yaml
+	$$(file > $$@,$$(apiServiceConf))
+
+services += $(serviceName)
+serviceFiles += $(serviceFile)
+files += $(serviceFile)
+
+endef
+
+$(eval $(module))

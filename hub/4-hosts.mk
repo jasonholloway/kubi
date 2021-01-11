@@ -1,6 +1,4 @@
-hosts:=puce
-puce_url:=puce.upis
-puce_user:=kubi
+hosts:=puce.upis
 
 remoteRoot:=/kubi
 caCrtFile:=out/etc/ca.crt
@@ -9,17 +7,14 @@ caCrtFile:=out/etc/ca.crt
 define perHostOuter
 
 root:=out/hosts/$(h)
-prepped:=$$(root)/prepped
-started:=$$(root)/started
-clean:=$$(root)/clean
 crtFile:=out/etc/$(h).crt
 csrFile:=out/etc/$(h).csr
 csrExtFile:=out/etc/$(h).csr.ext
 
-sshHost:=$($(h)_user)@$($(h)_url)
+sshHost:=kubi@$(h)
 syncOut:=rsync -rplt -F . $$(sshHost):$(remoteRoot)/
 syncIn:=rsync -rplt -F $$(sshHost):$(remoteRoot)/ .
-ssh=ssh $$(sshHost) "cd $(remoteRoot) && make -d host=$(h) -f host/Makefile $(1)"
+ssh=ssh $$(sshHost) "cd $(remoteRoot) && make -d -f host/Makefile $$(1)"
 
 $$(eval $$(perHostInner))
 endef
@@ -27,39 +22,29 @@ endef
 
 define perHostInner
 
-$(prepped): $(caCrtFile)
-	mkdir -p $$(@D)
+prep_$(h): $(caCrtFile)
 	$(syncOut)
 	$(call ssh,prep)
 	$(syncIn)
 
+postPrep_$(h): signCerts
+	$(syncOut)
 
-$(started): $(crtFile)
-	mkdir -p $$(@D)
+start_$(h):
 	$(syncOut)
 	$(call ssh,start)
 	$(syncIn)
 
 
-$(clean):
+clean_$(h):
 	$(call ssh,clean)
 	rm -rf $(root)
 
 
-$(crtFile): $(csrFile) $(csrExtFile)
-	openssl x509 -req \
-		-CA $(caCrtFile) \
-		-CAkey $(caKeyFile) \
-		-days 9999 \
-		-set_serial 01 \
-		-extfile $(csrExtFile) \
-		-in $(csrFile) \
-		-out $$@
-
-files += $(crtFile) $(prepped) $(started)
-preps += $(prepped)
-starts += $(started)
-cleans += $(clean)
+preps += prep_$(h)
+postPreps += postPrep_$(h)
+starts += start_$(h)
+cleans += clean_$(h)
 
 endef
 

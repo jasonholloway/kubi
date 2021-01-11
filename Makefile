@@ -3,15 +3,21 @@ SHELL:=/bin/bash
 .DEFAULT_GOAL:=prep
 
 preps:=
+postPreps:=
 starts:=
 files:=
 cleans:=
 
 include $(sort $(wildcard hub/*.mk))
 
-prep: $(preps)
+out/prepped: $(preps)
+	touch $@
 
-start: $(starts)
+out/postPrepped: out/prepped $(postPreps)
+	touch $@
+
+out/started: out/postPrepped $(starts)
+	touch $@
 
 stop: $(stops)
 

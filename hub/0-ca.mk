@@ -6,7 +6,7 @@ crtFile:=out/etc/ca.crt
 define module
 
 
-define crtConf
+define caCrtConf
 [req]
 default_bits			 = 2048
 x509_extensions		 = v3_ca
@@ -30,7 +30,7 @@ $(keyFile):
 	openssl genrsa -out $$@ 2048
 
 $(crtConfFile):
-	$$(file > $$@,$$(crtConf))
+	$$(file > $$@,$$(caCrtConf))
 
 $(crtFile): $(keyFile) $(crtConfFile)
 	openssl req \
@@ -40,9 +40,25 @@ $(crtFile): $(keyFile) $(crtConfFile)
 		-days 100000 \
 		-out $$@
 
+signCerts: $(keyFile) $(crtFile)
+	find out/hosts -name '*csr' \
+	| while read f; do \
+			openssl x509 -req \
+				-CA $(crtFile) \
+				-CAkey $(keyFile) \
+				-set_serial 01 \
+				-days 9999 \
+				$$$$([ -f $$$$f.ext ] && echo "-extfile $$$$f.ext" ) \
+				-in $$$$f \
+				-out $$$${f%.*}.crt; \
+		done
+
 
 caKeyFile:=$(keyFile)
 caCrtFile:=$(crtFile)
+
+preps += $(crtFile)
+postPreps += signCerts
 
 files += $(crtFile)
 keyFiles += $(keyFile)

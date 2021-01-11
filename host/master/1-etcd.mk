@@ -1,26 +1,16 @@
-serviceFile:=/etc/systemd/system/etcd.service
+serviceName:=etcd
+serviceFile:=$(servicePath)/$(serviceName).service
 etcdDataDir:=out/var/etcd
 
-binPath:=out/bin
 etcdBins:=etcd etcdctl
 etcdBinFiles:=$(foreach b,$(etcdBins),$(binPath)/$(b))
 
 v:=3.4.10
 name=etcd-v$(v)-linux-amd64
 url=https://github.com/etcd-io/etcd/releases/download/v$(v)/$(name).tar.gz
-tmp=$(mktemp -d)
-
-$(etcdBinFiles): 
-	cd $(tmp) \
-	&& wget $(url) -C $(tmp) \
-	&& tar xzf $(name).tar.gz $(foreach b,$(etcdBins),$(name)/$(b)) \
-	&& chmod +x etcd*/* \
-	&& touch etcd*/* \
-	&& mv etcd*/* $(abspath $(binPath))/ \
-	&& rm -f $(tmp)
 
 
-define serviceConf
+define etcdServiceConf
 [Unit]
 Description=etcd
 
@@ -52,9 +42,22 @@ RestartSec=5
 WantedBy=multi-user.target
 endef
 
-$(serviceFile): $(caCrtFile) $(apiCrtFile) $(apiKeyFile) $(etcdBinFiles)
-	$(file > $@,$(serviceConf))
 
+define module
+
+tmp=$(mktemp -d)
+
+$(etcdBinFiles): 
+	cd $$(tmp) \
+	&& wget $(url) -C $$(tmp) \
+	&& tar xzf $(name).tar.gz $(foreach b,$(etcdBins),$(name)/$(b)) \
+	&& chmod +x etcd*/* \
+	&& touch etcd*/* \
+	&& mv etcd*/* $(abspath $(binPath))/ \
+	&& rm -f $$(tmp)
+
+$(serviceFile): $(servicePath)/ $(caCrtFile) $(apiCrtFile) $(apiKeyFile) $(etcdBinFiles)
+	$$(file > $$@,$$(etcdServiceConf))
 
 etcdTest:
 	sudo ETCDCTL_API=3 etcdctl member list \
@@ -63,8 +66,12 @@ etcdTest:
 		--cert=$(apiCrtFile) \
 		--key=$(apiKeyFile)
 
-
-services += etcd
+services += $(serviceName)
+serviceFiles += $(serviceFile)
 binFiles += $(etcdBinFiles)
 files += $(serviceFile)
 tests += etcdTest
+
+endef
+
+$(eval $(module))

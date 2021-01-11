@@ -1,8 +1,10 @@
 
-reloadServices: $(foreach s,$(services),$($(s)ServiceFile))
+reloadServices: $(serviceFiles)
 	sudo systemctl daemon-reload
 
+
 startService/%: reloadServices
+	sudo ln -f -s $$PWD/$(out)/systemd/$*.service /etc/systemd/system/$*.service
 	sudo systemctl enable $*
 	sudo systemctl start $*
 

@@ -1,7 +1,7 @@
 mkFile:=$(abspath $(lastword $(MAKEFILE_LIST)))
-keyFile:=out/etc/scheduler.key
-csrFile:=out/etc/scheduler.csr
-crtFile:=out/etc/scheduler.crt
+keyFile:=$(out)/scheduler.key
+csrFile:=$(out)/scheduler.csr
+crtFile:=$(out)/scheduler.crt
 
 define module
 
@@ -16,19 +16,11 @@ $(csrFile): $(keyFile)
 		-key $(keyFile) \
 		-out $$@
 
-$(crtFile): $(csrFile) $$(caCrtFile) $$(caKeyFile)
-	openssl x509 -req \
-		-sha256 \
-		-CA $$(caCrtFile) \
-		-CAkey $$(caKeyFile) \
-		-set_serial 01 \
-		-extensions req_ext \
-		-days 9999 \
-		-in $(csrFile) \
-		-out $$@
 
+schedulerKeyFile:=$(keyFile)
+schedulerCrtFile:=$(crtFile)
 
-preps += $(crtFile)
+preps += $(csrFile)
 files += $(crtFile) $(csrFile)
 keyFiles += $(keyFile)
 

@@ -8,7 +8,6 @@ $(keyFile):
 	mkdir -p $$(@D)
 	head -c 32 /dev/urandom | base64 > $$@
 
-
 define yaml
 kind: EncryptionConfig
 apiVersion: v1
@@ -19,16 +18,16 @@ resources:
 			- aescbc:
 					keys:
 						- name: key1
-							secret: $$(key)
+							secret: $$(shell cat $$(keyFile))
 			- identity: {}
 endef
 
 
-$(yamlFile): key=$$(file < $(keyFile))
 $(yamlFile): $(keyFile) $(mkFile)
 	$$(file > $$@,$$(yaml))
 
 
+preps += $(yamlFile)
 files += $(yamlFile)
 keyFiles += $(keyFile)
 

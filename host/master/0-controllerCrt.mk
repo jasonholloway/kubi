@@ -1,7 +1,7 @@
 mkFile:=$(abspath $(lastword $(MAKEFILE_LIST)))
-keyFile:=out/etc/controller.key
-csrFile:=out/etc/controller.csr
-crtFile:=out/etc/controller.crt
+keyFile:=$(out)/controller.key
+csrFile:=$(out)/controller.csr
+crtFile:=$(out)/controller.crt
 
 define module
 
@@ -17,19 +17,10 @@ $(csrFile): $(keyFile)
 		-key $(keyFile) \
 		-out $$@
 
-$(crtFile): $(csrFile) $(caCrtFile) $(caKeyFile)
-	openssl x509 -req \
-		-sha256 \
-		-CA $(caCrtFile) \
-		-CAkey $(caKeyFile) \
-		-set_serial 01 \
-		-extensions req_ext \
-		-days 9999 \
-		-in $(csrFile) \
-		-out $$@
 
+controllerCrtFile:=$(crtFile)
 
-preps += $(crtFile)
+preps += $(csrFile)
 files += $(crtFile) $(csrFile)
 keyFiles += $(keyFile)
 

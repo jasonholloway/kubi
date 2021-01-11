@@ -1,8 +1,8 @@
 mkFile:=$(abspath $(lastword $(MAKEFILE_LIST)))
-keyFile:=out/etc/api.key
-csrConfFile:=out/etc/api.csr.conf
-csrFile:=out/etc/api.csr
-crtFile:=out/etc/api.crt
+keyFile:=$(out)/api.key
+csrConfFile:=$(out)/api.csr.conf
+csrFile:=$(out)/api.csr
+crtFile:=$(out)/api.crt
 
 define module
 
@@ -44,19 +44,19 @@ $(csrFile): $(keyFile) $(csrConfFile)
 		-config $(csrConfFile) \
 		-out $$@
 
-$(crtFile): $(csrFile) $(caCrtFile) $(caKeyFile)
-	openssl x509 -req \
-		-sha256 \
-		-CA $(caCrtFile) \
-		-CAkey $(caKeyFile) \
-		-set_serial 01 \
-		-extensions req_ext \
-		-days 9999 \
-		-in $(csrFile) \
-		-out $$@
+# $(crtFile): $(csrFile) $(caCrtFile) $(caKeyFile)
+# 	openssl x509 -req \
+# 		-sha256 \
+# 		-CA $(caCrtFile) \
+# 		-CAkey $(caKeyFile) \
+# 		-set_serial 01 \
+# 		-extensions req_ext \
+# 		-days 9999 \
+# 		-in $(csrFile) \
+# 		-out $$@
 
 
-preps += $(crtFile)
+preps += $(csrFile)
 files += $(crtFile)
 keyFiles += $(keyFile)
 
