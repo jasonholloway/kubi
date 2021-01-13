@@ -1,6 +1,6 @@
 serviceName:=etcd
 serviceFile:=$(servicePath)/$(serviceName).service
-etcdDataDir:=out/var/etcd
+etcdDataDir:=/var/kubi/etcd
 
 etcdBins:=etcd etcdctl
 etcdBinFiles:=$(foreach b,$(etcdBins),$(binPath)/$(b))

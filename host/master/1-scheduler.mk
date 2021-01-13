@@ -8,9 +8,9 @@ define schedulerConfig
 apiVersion: kubescheduler.config.k8s.io/v1alpha1
 kind: KubeSchedulerConfiguration
 clientConnection:
-	kubeconfig: $(abspath $(kubeconfigFile))
+  kubeconfig: $(abspath $(kubeconfigFile))
 leaderElection:
-	leaderElect: true
+  leaderElect: true
 endef
 
 

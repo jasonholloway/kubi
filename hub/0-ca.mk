@@ -20,8 +20,7 @@ CN = kubi-ca
 basicConstraints				= critical, CA:TRUE
 subjectKeyIdentifier		= hash
 authorityKeyIdentifier	= keyid:always, issuer:always
-keyUsage								= critical, cRLSign, digitalSignature, keyCertSign, keyEncipherment
-extendedKeyUsage				= serverAuth, clientAuth
+keyUsage								= critical, cRLSign, digitalSignature, keyCertSign
 endef
 
 

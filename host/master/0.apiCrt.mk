@@ -44,17 +44,9 @@ $(csrFile): $(keyFile) $(csrConfFile)
 		-config $(csrConfFile) \
 		-out $$@
 
-# $(crtFile): $(csrFile) $(caCrtFile) $(caKeyFile)
-# 	openssl x509 -req \
-# 		-sha256 \
-# 		-CA $(caCrtFile) \
-# 		-CAkey $(caKeyFile) \
-# 		-set_serial 01 \
-# 		-extensions req_ext \
-# 		-days 9999 \
-# 		-in $(csrFile) \
-# 		-out $$@
 
+apiCrtFile:=$(crtFile)
+apiKeyFile:=$(keyFile)
 
 preps += $(csrFile)
 files += $(crtFile)

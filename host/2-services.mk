@@ -1,26 +1,30 @@
 
-reloadServices: $(serviceFiles)
+servicesStarted:=$(out)/servicesStarted
+
+$(servicesStarted): $(serviceFiles)
+	for f in $$PWD/$(out)/systemd/*.service; do \
+		sudo systemctl stop $$(basename $$f); \
+		sudo systemctl disable $$(basename $$f); \
+		sudo ln -f -s $$f /etc/systemd/system/$$(basename $$f); \
+		sudo systemctl enable $$(basename $$f); \
+		sudo systemctl start $$(basename $$f); \
+	done
 	sudo systemctl daemon-reload
-
-
-startService/%: reloadServices
-	sudo ln -f -s $$PWD/$(out)/systemd/$*.service /etc/systemd/system/$*.service
-	sudo systemctl enable $*
-	sudo systemctl start $*
-
-
-startServices: $(foreach s,$(services),startService/$(s)) 
-	-mkdir -p out
-	touch out/installServices
-
+	touch $@
 
 stopService/%:
-	sudo systemctl stop $*
-	sudo systemctl disable $*
+	-sudo systemctl stop $*
+	-sudo systemctl disable $*
 
 stopServices: $(foreach s,$(services),stopService/$(s))
+	for f in $$PWD/$(out)/systemd/*.service; do \
+		sudo systemctl stop $$(basename $$f); \
+		sudo systemctl disable $$(basename $$f); \
+		sudo rm /etc/systemd/system/$$(basename $$f); \
+	done
 	sudo systemctl daemon-reload
+	rm $(servicesStarted)
 
 
-starts += startServices
+starts += $(servicesStarted)
 stops += stopServices
