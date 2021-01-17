@@ -3,6 +3,7 @@
 _service:=$(out)/systemd/kubelet.service
 _config:=$(out)/kubelet.yaml
 _kubeconfig:=$(out)/kubelet.kubeconfig
+_bin:=$(k8sWorker_binPath)/kubelet
 
 _cluster:=kubi
 _user:=system:node:$(host)

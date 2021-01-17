@@ -1,7 +1,8 @@
-# Module k8s
+# Module k8sWorker
 
 _binNames:=kubectl kubelet kube-proxy
-_bins:=$(foreach b,$(_binNames),$(binPath)/$(b))
+_binPath:=$(binPath)
+_bins:=$(foreach b,$(_binNames),$(_binPath)/$(b))
 
 _v=1.18.6
 _url=https://storage.googleapis.com/kubernetes-release/release/v$(_v)/bin/linux/amd64
@@ -17,7 +18,6 @@ $(_bins):
 	rm -rf $(tmp)
 
 kubectl_bin:=$(binPath)/kubectl
-kubelet_bin:=$(binPath)/kubelet
 proxy_bin:=$(binPath)/kube-proxy
 
 binFiles += $(_bins)

@@ -1,5 +1,4 @@
 # Module host
-# Weight -9998
 
 _key:=$(out)/host.key
 _csr:=$(out)/host.csr

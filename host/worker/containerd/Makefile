@@ -1,8 +1,9 @@
 # Module containerd
 
-_gz:=$(out)/containerd.tar.gz
+_gz:=$(abspath out/containerd.tar.gz)
 _bin:=$(binPath)/containerd
-_config:=$(out)/containerd/config.toml
+_configPath:=$(out)/containerd/
+_config:=$(_configPath)config.toml
 _service:=$(out)/systemd/containerd.service
 _sock:=/var/kubi/run/containerd/containerd.sock
 _debugSock:=/var/kubi/run/containerd/debug.sock
@@ -42,8 +43,10 @@ define _configData
 	conf_dir = "$(cni_confPath)"
 endef
 
-$(_config): $(me) $(cni_binsDownloaded) $(runc_bin) $(cni_confs)
+$(_configPath):
 	mkdir -p $(@D)
+
+$(_config): $(me) $(_configPath) $(cni_bins) $(runc_bin) $(cni_confs)
 	$(file > $@,$(_configData))
 
 
@@ -70,7 +73,7 @@ LimitCORE=infinity
 WantedBy=multi-user.target
 endef
 
-$(_service): $(me) $(_bin) $(_config)
+$(_service): $(me) $(servicePath)/ $(_bin) $(_config)
 	$(file > $@,$(_serviceData))
 
 

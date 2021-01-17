@@ -9,7 +9,6 @@ _podCidr:="127.64.0.0/64"
 _binPath:=$(binPath)/cni
 _binNames:=bandwidth dhcp flannel host-local loopback portmap sbr tuning bridge firewall host-device ipvlan ptp static vlan
 _bins:=$(foreach n,$(_binNames),$(_binPath)/$(n))
-_binsDownloaded:=$(out)/cni/binsDownloaded
 
 _v:=0.8.6
 _name:=cni-plugins-linux-amd64-v$(_v)
@@ -18,8 +17,8 @@ _url:=https://github.com/containernetworking/plugins/releases/download/v$(_v)/$(
 $(_confPath):
 	mkdir -p $@
 
-$(_binsDownloaded): tmp:=$(shell mktemp -d)
-$(_binsDownloaded):
+$(_bins): tmp:=$(shell mktemp -d)
+$(_bins):
 	cd $(tmp) \
 	&& wget $(_url) \
 	&& tar xzf $(_name).tgz && rm $(_name).tgz \
@@ -27,8 +26,7 @@ $(_binsDownloaded):
 	&& touch ./* \
 	&& mkdir -p $(_binPath) \
 	&& mv $(tmp)/* $(_binPath)/ \
-	&& rm -rf $(tmp) \
-	&& touch $@
+	&& rm -rf $(tmp)
 
 
 define _bridgeConfData
