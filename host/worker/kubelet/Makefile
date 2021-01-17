@@ -7,7 +7,7 @@ _bin:=$(k8sWorker_binPath)/kubelet
 
 _cluster:=kubi
 _user:=system:node:$(host)
-_podCidr:="127.64.0.0/16"
+_podCidr:=127.64.0.0/16
 
 define _configData
 kind: KubeletConfiguration
@@ -65,8 +65,8 @@ ExecStart=$(_bin) \
 	--hostname-override=$(host) \
 	--config=$(_config) \
 	--container-runtime=remote \
-	--container-runtime-endpoint=unix:/$(containerd_sock) \
-	--image-pull-progress-deadline=2m \
+	--container-runtime-endpoint=unix://$(containerd_sock) \
+	--image-pull-progress-deadline=1m \
 	--kubeconfig=$(_kubeconfig) \
 	--network-plugin=cni \
 	--register-node=true \

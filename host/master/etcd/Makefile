@@ -1,10 +1,7 @@
 # Module etcd
 
-_d:=$(dir $(me))
-
-_serviceTemplate:=$(_d)/etcd.service.sh
 _service:=$(servicePath)/etcd.service
-_dataDir:=/var/kubi/etcd
+_dataDir:=$(abspath run/etcd)
 
 _bins:=etcd etcdctl
 _binFiles:=$(foreach b,$(_bins),$(binPath)/$(b))
@@ -31,14 +28,14 @@ Description=etcd
 
 [Service]
 Type=notify
-ExecStart=$(abspath $(_bin)) \
+ExecStart=$(_bin) \
 	--name $(host) \
-	--trusted-ca-file=$(abspath $(ca_crt)) \
-	--peer-trusted-ca-file=$(abspath $(ca_crt)) \
-	--cert-file=$(abspath $(api_crt)) \
-	--key-file=$(abspath $(api_key)) \
-	--peer-cert-file=$(abspath $(api_crt)) \
-	--peer-key-file=$(abspath $(api_key)) \
+	--trusted-ca-file=$(ca_crt) \
+	--peer-trusted-ca-file=$(ca_crt) \
+	--cert-file=$(api_crt) \
+	--key-file=$(api_key) \
+	--peer-cert-file=$(api_crt) \
+	--peer-key-file=$(api_key) \
 	--peer-client-cert-auth \
 	--client-cert-auth \
 	--initial-advertise-peer-urls https://127.0.0.1:2380 \
@@ -48,7 +45,7 @@ ExecStart=$(abspath $(_bin)) \
 	--initial-cluster-token etcd-cluster-0 \
 	--initial-cluster $(host)=https://127.0.0.1:2380 \
 	--initial-cluster-state new \
-	--data-dir=$(abspath $(_dataDir)) \
+	--data-dir=$(_dataDir) \
 	--logger=zap
 Restart=on-failure
 RestartSec=5

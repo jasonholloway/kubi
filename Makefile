@@ -8,7 +8,6 @@ starts:=
 files:=
 cleans:=
 
-me:=$(lastword $(MAKEFILE_LIST))
 include $(shell ./makemodule $$(find hub -name '*.mk' -o -name 'Makefile'))
 
 out/prepped: $(preps)

@@ -23,7 +23,7 @@ keyFiles += $(_key)
 
 _serviceName:=kube-controller
 _service:=$(out)/systemd/$(_serviceName).service
-_kubeconfig:=out/etc/controller.kubeconfig
+_kubeconfig:=$(out)/etc/controller.kubeconfig
 _bin:=$(k8s_binPath)/kube-controller-manager
 
 _cluster:=kubi
@@ -34,17 +34,17 @@ define _serviceData
 Description=Kubernetes Controller Manager
 
 [Service]
-ExecStart=$(abspath $(_bin)) \
+ExecStart=$(_bin) \
 	--bind-address=0.0.0.0 \
 	--cluster-cidr=10.200.0.0/16 \
 	--service-cluster-ip-range=10.32.0.0/24 \
 	--cluster-name=kubi \
-	--cluster-signing-cert-file=$(abspath $(_crt)) \
-	--cluster-signing-key-file=$(abspath $(_key)) \
-	--kubeconfig=$(abspath $(_kubeconfig)) \
+	--cluster-signing-cert-file=$(_crt) \
+	--cluster-signing-key-file=$(_key) \
+	--kubeconfig=$(_kubeconfig) \
 	--leader-elect=true \
-	--root-ca-file=$(abspath $(ca_crt)) \
-	--service-account-private-key-file=$(abspath $(_key)) \
+	--root-ca-file=$(ca_crt) \
+	--service-account-private-key-file=$(api_key) \
 	--use-service-account-credentials=true \
 	--v=2
 Restart=on-failure

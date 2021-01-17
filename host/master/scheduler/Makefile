@@ -22,8 +22,8 @@ keyFiles += $(_key)
 
 _serviceName:=kube-scheduler
 _service:=$(servicePath)/$(_serviceName).service
-_kubeconfig:=out/etc/scheduler.kubeconfig
-_config:=out/etc/scheduler.yaml
+_kubeconfig:=$(out)/scheduler.kubeconfig
+_config:=$(out)/scheduler.yaml
 _bin:=$(k8s_binPath)/kube-scheduler
 
 _cluster:=kubi
@@ -31,13 +31,13 @@ _user:=system:kube-scheduler
 
 $(_kubeconfig): $(kubectl_bin) $(ca_crt)
 	kubectl config set-cluster $(_cluster) \
-		--certificate-authority=$(abspath $(ca_crt)) \
+		--certificate-authority=$(ca_crt) \
 		--embed-certs=true \
 		--server=https://kubi:6443 \
 		--kubeconfig=$@
 	kubectl config set-credentials $(_user) \
-		--client-certificate=$(abspath $(_crt)) \
-		--client-key=$(abspath $(_key)) \
+		--client-certificate=$(_crt) \
+		--client-key=$(_key) \
 		--embed-certs=true \
 		--kubeconfig=$@
 	kubectl config set-context default \
@@ -52,13 +52,13 @@ define _configData
 apiVersion: kubescheduler.config.k8s.io/v1alpha1
 kind: KubeSchedulerConfiguration
 clientConnection:
-  kubeconfig: $(abspath $(_kubeconfig))
+  kubeconfig: $(_kubeconfig)
 leaderElection:
   leaderElect: true
 endef
 
-$(_config): $(_kubeconfig)
-	$(file > $@,$(_config))
+$(_config): $(me) $(_kubeconfig)
+	$(file > $@,$(_configData))
 
 
 define _serviceData
@@ -66,8 +66,8 @@ define _serviceData
 Description=Kubernetes Scheduler
 
 [Service]
-ExecStart=$(abspath $(_bin)) \
-	--config=$(abspath $(_config)) \
+ExecStart=$(_bin) \
+	--config=$(_config) \
 	--v=2
 Restart=on-failure
 RestartSec=5
@@ -76,7 +76,7 @@ RestartSec=5
 WantedBy=multi-user.target
 endef
 
-$(_service): $(servicePath)/ $(_bin) $(_config)
+$(_service): $(servicePath)/ $(me) $(_bin) $(_config)
 	$(file > $@,$(_serviceData))
 
 services += $(_serviceName)

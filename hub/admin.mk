@@ -9,7 +9,7 @@ $(_key):
 	mkdir -p $(@D)
 	openssl genrsa -out $@ 2048
 
-$(_csr):
+$(_csr): $(_key)
 	openssl req -new -nodes \
 		-sha256 \
 		-subj "/O=system:masters/CN=kubi-admin" \
@@ -27,8 +27,6 @@ $(_crt): $(_csr) $(ca_crt) $(ca_key)
 		-in $(_csr) \
 		-out $@
 
-_user:=SOMEUSER
-
 $(_kubeconfig): $(ca_crt) $(_crt) $(_key) $(me)
 	kubectl config set-cluster kubi \
 		--certificate-authority=$(ca_crt) \
@@ -42,11 +40,12 @@ $(_kubeconfig): $(ca_crt) $(_crt) $(_key) $(me)
 		--kubeconfig=$@
 	kubectl config set-context default \
 		--cluster=kubi \
-		--user=$(_user) \
+		--user=admin \
 		--kubeconfig=$@
 	kubectl config use-context default \
 		--kubeconfig=$@
 
 
+preps += $(_kubeconfig)
 files += $(_crt) $(_kubeconfig)
 keyFiles += $(_key)

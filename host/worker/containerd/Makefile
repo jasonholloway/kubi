@@ -5,8 +5,8 @@ _bin:=$(binPath)/containerd
 _configPath:=$(out)/containerd/
 _config:=$(_configPath)config.toml
 _service:=$(out)/systemd/containerd.service
-_sock:=/var/kubi/run/containerd/containerd.sock
-_debugSock:=/var/kubi/run/containerd/debug.sock
+_sock:=$(abspath run/containerd.sock)
+_debugSock:=$(abspath run/containerd-debug.sock)
 
 _v:=1.3.6
 _name:=containerd-$(_v)-linux-amd64
