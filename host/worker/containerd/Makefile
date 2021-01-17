@@ -1,6 +1,6 @@
 # Module containerd
 
-_gz:=$(abspath out/containerd.tar.gz)
+_gz:=$(abspath cache/containerd.tar.gz)
 _bin:=$(binPath)/containerd
 _configPath:=$(out)/containerd/
 _config:=$(_configPath)config.toml
@@ -13,6 +13,7 @@ _name:=containerd-$(_v)-linux-amd64
 _url=https://github.com/containerd/containerd/releases/download/v$(_v)/$(_name).tar.gz
 
 $(_gz):
+	mkdir -p $(@D)
 	wget $(_url) -O $@
 
 $(_bin): tmp:=$(shell mktemp -d)
