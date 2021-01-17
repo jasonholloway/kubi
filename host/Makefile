@@ -16,6 +16,8 @@ files:=
 me:=$(lastword $(MAKEFILE_LIST))
 include $(shell ./makemodule $$(find $(dir $(me)) -name '*.mk' -o -name 'Makefile' -a ! -path "$(me)"))
 
+$(info $(services))
+$(info $(serviceFiles))
 
 $(out)/:
 	mkdir -p $(out)

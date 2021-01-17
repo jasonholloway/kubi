@@ -12,12 +12,31 @@ _cluster:=kubi
 _user:=system:node:$(host)
 _podCidr:="127.64.0.0/16"
 
+define _configData
+kind: KubeletConfiguration
+apiVersion: kubelet.config.k8s.io/v1beta1
+authentication:
+	anonymous:
+		enabled: true
+	webhook:
+		enabled: true
+	x509:
+		clientCAFile: $(ca_crt)
+authorization:
+	mode: AlwaysAllow
+clusterDomain: "kubi.local"
+clusterDNS:
+	- "10.32.0.10"
+podCIDR: $(_podCidr)
+resolvConf: "/run/systemd/resolve/resolv.conf"
+runtimeRequestTimeout: "15m"
+tlsCertFile: $(host_crt)
+tlsPrivateKeyFile: $(host_key)
+endef
+
 $(_config): $(_configTemplate) $(ca_crt) $(host_crt) $(host_key)
-	$(_configTemplate) \
-		$(ca_crt) \
-		$(host_crt) \
-		$(host_key) \
-		$(_podCidr) > $@
+	$(file >$@,$(_configData))
+
 
 $(_kubeconfig): $(kubectl_bin) $(ca_crt) $(host_crt) $(host_key)
 	kubectl config set-cluster $(_cluster) \
@@ -37,13 +56,35 @@ $(_kubeconfig): $(kubectl_bin) $(ca_crt) $(host_crt) $(host_key)
 	kubectl config use-context default \
 		--kubeconfig=$@
 
-$(_service): $(_serviceTemplate) $(_bin) $(_config) $(_kubeconfig) $(containerd_sock)
-	$(_serviceTemplate) \
-		$(_bin) \
-		$(host) \
-		$(_config) \
-		$(_kubeconfig) \
-		$(containerd_sock) > $@
+
+define _serviceData
+[Unit]
+Description=Kubernetes Kubelet
+After=containerd.service
+Requires=containerd.service
+
+[Service]
+ExecStart=$(_bin) \
+	--hostname-override=$(host) \
+	--config=$(_config) \
+	--container-runtime=remote \
+	--container-runtime-endpoint=unix:/$(containerd_sock) \
+	--image-pull-progress-deadline=2m \
+	--kubeconfig=$(_kubeconfig) \
+	--network-plugin=cni \
+	--register-node=true \
+	--fail-swap-on=false \
+	--v=2
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+endef
+
+$(_service): $(_serviceTemplate) $(_bin) $(_config) $(_kubeconfig)
+	$(file >$@,$(_serviceData))
+
 
 
 services += kubelet

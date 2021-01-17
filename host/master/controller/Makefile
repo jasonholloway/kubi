@@ -1,7 +1,7 @@
 # Module controller
 
 _serviceName:=kube-controller
-_service:=$(out)/systemd/$(serviceName).service
+_service:=$(out)/systemd/$(_serviceName).service
 _kubeconfig:=out/etc/controller.kubeconfig
 _cluster:=kubi
 _user:=system:kube-controller-manager
@@ -50,7 +50,7 @@ $(_kubeconfig): $(kubectl_bin)
 		--kubeconfig=$@
 
 
-$(_service): $(servicePath)/ $(_bin) $(_kubeconfig)
+$(_service): $(servicePath)/ $(me) $(_bin) $(_kubeconfig)
 	$(file > $@,$(_serviceData))
 
 

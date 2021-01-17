@@ -6,32 +6,6 @@ _kubeconfig:=out/etc/scheduler.kubeconfig
 _config:=out/etc/scheduler.yaml
 
 
-define _configData
-apiVersion: kubescheduler.config.k8s.io/v1alpha1
-kind: KubeSchedulerConfiguration
-clientConnection:
-  kubeconfig: $(abspath $(_kubeconfig))
-leaderElection:
-  leaderElect: true
-endef
-
-
-define _serviceData
-[Unit]
-Description=Kubernetes Scheduler
-
-[Service]
-ExecStart=$(abspath $(_bin)) \
-	--config=$(abspath $(_config)) \
-	--v=2
-Restart=on-failure
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-endef
-
-
 _cluster:=kubi
 _user:=system:kube-scheduler
 
@@ -53,8 +27,34 @@ $(_kubeconfig): $(kubectl_bin) $(ca_crt)
 	kubectl config use-context default \
 		--kubeconfig=$@
 
+
+define _configData
+apiVersion: kubescheduler.config.k8s.io/v1alpha1
+kind: KubeSchedulerConfiguration
+clientConnection:
+  kubeconfig: $(abspath $(_kubeconfig))
+leaderElection:
+  leaderElect: true
+endef
+
 $(_config): $(_kubeconfig)
 	$(file > $@,$(_config))
+
+
+define _serviceData
+[Unit]
+Description=Kubernetes Scheduler
+
+[Service]
+ExecStart=$(abspath $(_bin)) \
+	--config=$(abspath $(_config)) \
+	--v=2
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+endef
 
 $(_service): $(servicePath)/ $(_bin) $(_config)
 	$(file > $@,$(_serviceData))

@@ -2,9 +2,9 @@
 
 _d:=$(dir $(me))
 _gz:=out/containerd.tar.gz
-_bin:=out/bin/containerd
-_config:=out/etc/containerd/config.toml
-_service:=/etc/systemd/system/containerd.service
+_bin:=$(binPath)/bin/containerd
+_config:=$(out)/containerd/config.toml
+_service:=$(out)/systemd/containerd.service
 _sock:=/var/kubi/run/containerd/containerd.sock
 _debugSock:=/var/kubi/run/containerd/debug.sock
 
@@ -26,11 +26,55 @@ $(_bin): $(_gz)
 	chmod +x $(_bin)
 	touch $(_bin)
 
-$(_config): $(_configTemplate) $(cni_binsDownloaded)
-	$(file > $@,$(shell $(_configTemplate) $(_sock) $(_debugSock)))
 
-$(_service): $(_serviceTemplate) $(_bin) $(runc_bin) $(_config) $(cni_confs)
-	$(file > $@,$(shell $(_serviceTemplate)))
+define _configData
+[grpc]
+	address = "$(_sock)"
+
+[debug]
+	address = "$(_debugSock)"
+
+[plugins.cri.containerd]
+	snapshotter = "overlayfs"
+	[plugins.cri.containerd.default_runtime]
+		runtime_type = "io.containerd.runtime.v1.linux"
+		runtime_engine = "$(abspath $(runc_bin))"
+		runtime_root = ""
+
+[plugins.cri.cni]
+	bin_dir = "/kubi/bin/cni"
+	conf_dir = "/kubi/etc/cni/net.d"
+endef
+
+$(_config): $(me) $(cni_binsDownloaded) $(runc_bin) $(cni_confs)
+	$(file > $@,$(_configData))
+
+
+define _serviceData
+[Unit]
+Description=containerd container runtime
+Documentation=https://containerd.io
+After=network.target
+
+[Service]
+ExecStartPre=/sbin/modprobe overlay
+ExecStart=$(_bin) \
+	--config $(_config)
+Restart=always
+RestartSec=5
+Delegate=yes
+KillMode=process
+OOMScoreAdjust=-999
+LimitNOFILE=1048576
+LimitNPROC=infinity
+LimitCORE=infinity
+
+[Install]
+WantedBy=multi-user.target
+endef
+
+$(_service): $(me) $(_bin) $(_config)
+	$(file > $@,$(_serviceData))
 
 
 services += containerd
