@@ -13,17 +13,17 @@ define _configData
 kind: KubeletConfiguration
 apiVersion: kubelet.config.k8s.io/v1beta1
 authentication:
-	anonymous:
-		enabled: true
-	webhook:
-		enabled: true
-	x509:
-		clientCAFile: $(ca_crt)
+  anonymous:
+    enabled: true
+  webhook:
+    enabled: true
+  x509:
+    clientCAFile: $(ca_crt)
 authorization:
-	mode: AlwaysAllow
+  mode: AlwaysAllow
 clusterDomain: "kubi.local"
 clusterDNS:
-	- "10.32.0.10"
+  - "10.32.0.10"
 podCIDR: $(_podCidr)
 resolvConf: "/run/systemd/resolve/resolv.conf"
 runtimeRequestTimeout: "15m"
