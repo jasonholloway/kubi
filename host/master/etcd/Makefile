@@ -1,6 +1,6 @@
 # Module etcd
 
-_d:=$(dir $(lastword $(MAKEFILE_LIST)))
+_d:=$(dir $(me))
 
 _serviceTemplate:=$(_d)/etcd.service.sh
 _service:=$(servicePath)/etcd.service

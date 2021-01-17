@@ -1,6 +1,5 @@
 # Module admin
 
-_me:=$(abspath $(lastword $(MAKEFILE_LIST)))
 _key:=out/etc/admin.key
 _csr:=out/etc/admin.csr
 _crt:=out/etc/admin.crt
@@ -30,7 +29,7 @@ $(_crt): $(_csr) $(ca_crt) $(ca_key)
 
 _user:=SOMEUSER
 
-$(_kubeconfig): $(ca_crt) $(_crt) $(_key) $(_me)
+$(_kubeconfig): $(ca_crt) $(_crt) $(_key) $(me)
 	kubectl config set-cluster kubi \
 		--certificate-authority=$(ca_crt) \
 		--embed-certs=true \

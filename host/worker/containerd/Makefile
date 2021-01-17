@@ -1,6 +1,6 @@
 # Module containerd
 
-_d:=$(dir $(lastword $(MAKEFILE_LIST)))
+_d:=$(dir $(me))
 _gz:=out/containerd.tar.gz
 _bin:=out/bin/containerd
 _config:=out/etc/containerd/config.toml

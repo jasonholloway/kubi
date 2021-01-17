@@ -1,6 +1,6 @@
 # Module cni
 
-_d:=$(dir $(lastword $(MAKEFILE_LIST)))
+_d:=$(dir $(me))
 _bridgeConfTemplate:=$(_d)bridge.conf.sh
 _localConfTemplate:=$(_d)local.conf.sh
 

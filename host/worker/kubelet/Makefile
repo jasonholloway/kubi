@@ -1,6 +1,6 @@
 #Module kubelet
 
-_d:=$(dir $(lastword $(MAKEFILE_LIST)))
+_d:=$(dir $(me))
 _configTemplate:=$(_d)kubelet.yaml.sh
 _serviceTemplate:=$(_d)kubelet.service.sh
 

@@ -14,7 +14,7 @@ serviceFiles:=
 files:=
 
 me:=$(lastword $(MAKEFILE_LIST))
-include $(shell ./jm $$(find $(dir $(me)) -name '*.mk' -o -name 'Makefile' -a ! -path "$(me)"))
+include $(shell ./makemodule $$(find $(dir $(me)) -name '*.mk' -o -name 'Makefile' -a ! -path "$(me)"))
 
 
 $(out)/:

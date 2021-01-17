@@ -1,7 +1,5 @@
 # Module api
 
-_me:=$(abspath $(lastword $(MAKEFILE_LIST)))
-
 _key:=$(out)/api.key
 _csrConf:=$(out)/api.csr.conf
 _csr:=$(out)/api.csr
@@ -35,7 +33,7 @@ $(_key):
 	mkdir -p $(@D)
 	openssl genrsa -out $@ 2048
 
-$(_csrConf): $(_me)
+$(_csrConf): $(me)
 	mkdir -p $(@D)
 	$(file > $@,$(_csrConfData))
 

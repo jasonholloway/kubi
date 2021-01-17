@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tmp=tmp #$(mktemp -d)
+tmp=.mm
 
 main() {
   for file in "$@"; do
@@ -23,7 +23,7 @@ project() {
   d2=$tmp/$d1
   p2=$d2/$f
   
-  filters=$(getVars $p1 | genFilters $name | xargs)
+  filters=$(genFilters $p1 $name | xargs)
   
   mkdir -p $d2
   eval "cat $p1 | $filters" > $p2
@@ -38,17 +38,12 @@ getName() {
   ' "$1"
 }
 
-getVars() {
-  grep -Po '^_[^\W]+?(?=\W*?:|=)' "$1"
-  grep -Po '(?<=^define\W)_[^\W]+' "$1"
-}
-
 genFilters() {
-  mod=$1
-  while read -r var; do
-    echo "perl -pe \'s/(?<![a-zA-Z0-9])${var}/${mod}${var}/g\' | "
-  done
-  echo cat
+  path=$1
+  name=$2
+  echo "perl -pe \'s/(?<![a-zA-Z0-9\\\/])(_[a-zA-Z]+)/${name}\\\1/g\' | "
+  echo "sed 's/$\(me\)/${path//\//\\\\/}/g' | "
+  echo "cat"
 }
 
 main "$@"

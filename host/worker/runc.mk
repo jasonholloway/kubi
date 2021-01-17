@@ -1,6 +1,6 @@
 # Module runc
 
-_d:=$(dir $(lastword $(MAKEFILE_LIST)))
+_d:=$(dir $(me))
 _bin:=out/bin/runc
 
 _v:=1.0.0-rc91

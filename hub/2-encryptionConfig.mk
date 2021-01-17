@@ -1,6 +1,5 @@
 # Module encrypt
 
-_me:=$(abspath $(lastword $(MAKEFILE_LIST)))
 _key:=out/etc/encryption.key
 _config:=out/etc/encryption.yaml
 
@@ -23,7 +22,7 @@ resources:
 endef
 
 
-$(_config): $(_key) $(_me)
+$(_config): $(_key) $(me)
 	$(file > $@,$(_configData))
 
 

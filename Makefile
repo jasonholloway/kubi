@@ -9,7 +9,7 @@ files:=
 cleans:=
 
 me:=$(lastword $(MAKEFILE_LIST))
-include $(shell ./jm $$(find hub -name '*.mk' -o -name 'Makefile'))
+include $(shell ./makemodule $$(find hub -name '*.mk' -o -name 'Makefile'))
 
 out/prepped: $(preps)
 	touch $@

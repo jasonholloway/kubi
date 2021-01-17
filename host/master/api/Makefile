@@ -1,6 +1,6 @@
 # Module api
 
-_d:=$(dir $(lastword $(MAKEFILE_LIST)))
+_d:=$(dir $(me))
 
 _serviceTemplate:=$(_d)/kube-api.service.sh
 _service:=$(out)/systemd/kube-api.service
