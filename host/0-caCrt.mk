@@ -1,4 +1,5 @@
 # Module ca
+# Weight -9999
 
-_crt:=out/etc/ca.crt
+_crt:=$(abspath out/etc/ca.crt)
 

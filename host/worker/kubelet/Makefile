@@ -1,9 +1,5 @@
 #Module kubelet
 
-_d:=$(dir $(me))
-_configTemplate:=$(_d)kubelet.yaml.sh
-_serviceTemplate:=$(_d)kubelet.service.sh
-
 _service:=$(out)/systemd/kubelet.service
 _config:=$(out)/kubelet.yaml
 _kubeconfig:=$(out)/kubelet.kubeconfig

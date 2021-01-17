@@ -1,30 +1,26 @@
 # Module containerd
 
-_d:=$(dir $(me))
-_gz:=out/containerd.tar.gz
-_bin:=$(binPath)/bin/containerd
+_gz:=$(out)/containerd.tar.gz
+_bin:=$(binPath)/containerd
 _config:=$(out)/containerd/config.toml
 _service:=$(out)/systemd/containerd.service
 _sock:=/var/kubi/run/containerd/containerd.sock
 _debugSock:=/var/kubi/run/containerd/debug.sock
-
-_configTemplate:=$(_d)/config.toml.sh
-_serviceTemplate:=$(_d)/containerd.service.sh
 
 _v:=1.3.6
 _name:=containerd-$(_v)-linux-amd64
 _url=https://github.com/containerd/containerd/releases/download/v$(_v)/$(_name).tar.gz
 
 $(_gz):
-	wget $(_url) -O $(_gz)
+	wget $(_url) -O $@
 
 $(_bin): tmp:=$(shell mktemp -d)
 $(_bin): $(_gz)
 	tar xzf $(_gz) -C $(tmp)
-	mv $(tmp)/bin/containerd $(_bin)
+	mv $(tmp)/bin/containerd $@
 	rm -rf $(tmp)
-	chmod +x $(_bin)
-	touch $(_bin)
+	chmod +x $@
+	touch $@
 
 
 define _configData
@@ -38,15 +34,16 @@ define _configData
 	snapshotter = "overlayfs"
 	[plugins.cri.containerd.default_runtime]
 		runtime_type = "io.containerd.runtime.v1.linux"
-		runtime_engine = "$(abspath $(runc_bin))"
+		runtime_engine = "$(runc_bin)"
 		runtime_root = ""
 
 [plugins.cri.cni]
-	bin_dir = "/kubi/bin/cni"
-	conf_dir = "/kubi/etc/cni/net.d"
+	bin_dir = "$(cni_binPath)"
+	conf_dir = "$(cni_confPath)"
 endef
 
 $(_config): $(me) $(cni_binsDownloaded) $(runc_bin) $(cni_confs)
+	mkdir -p $(@D)
 	$(file > $@,$(_configData))
 
 

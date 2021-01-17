@@ -2,7 +2,7 @@
 
 servicesStarted:=$(out)/servicesStarted
 
-$(servicesStarted): $(warning HELLO $(serviceFiles)) $(serviceFiles)
+$(servicesStarted): $(serviceFiles)
 	for f in $(serviceFiles); do \
 		sudo systemctl disable --now $$(basename $$f); \
 		sudo systemctl enable --now $$(realpath $$f); \

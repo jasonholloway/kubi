@@ -5,13 +5,19 @@ tmp=.mm
 main() {
   for file in "$@"; do
     name=$(getName "$file")
+    weight=$(getWeight "$file")
 
     if [ ! -z "$name" ]; then
-      project "$file" "$name"
+      file=$(project "$file" "$name")
     else
-      echo "$file"
+      name="-"
     fi
-  done | xargs   
+
+    echo -e "${weight}\t${name}\t${file}"
+  done \
+  | sort -g \
+  | awk '{print $3}' \
+  | xargs
 }
 
 project() {
@@ -35,6 +41,14 @@ getName() {
   awk '
       /^#Module / {print $2; exit}
       /^#\W+Module / {print $3; exit}
+  ' "$1"
+}
+
+getWeight() {
+  awk '
+      /^#Weight / {w=$2; exit}
+      /^#\W+Weight / {w=$3; exit}
+      END { if(w) {print w} else {print 10} }
   ' "$1"
 }
 

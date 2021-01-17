@@ -44,7 +44,7 @@ _signCerts: $(_key) $(_crt)
 				-CAkey $(_key) \
 				-set_serial 01 \
 				-days 9999 \
-				$$([ -f $$$$f.ext ] && echo "-extfile $$f.ext" ) \
+				$$([ -f $$f.ext ] && echo "-extfile $$f.ext" ) \
 				-in $$f \
 				-out $${f%.*}.crt; \
 		done
