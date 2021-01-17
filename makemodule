@@ -1,54 +1,105 @@
 #!/bin/bash
 
+export IFS=,
 tmp=.mm
 
+declare -A files
+
 main() {
-  for file in "$@"; do
-    name=$(getName "$file")
-    weight=$(getWeight "$file")
+  data=$(
+      readSources "$@" \
+    | tee >(readDeps) \
+    | tee >(tryProject)
+    )
 
-    if [ ! -z "$name" ]; then
-      file=$(project "$file" "$name")
-    else
-      name="-"
-    fi
-
-    echo -e "${weight}\t${name}\t${file}"
-  done \
-  | sort -g \
-  | awk '{print $3}' \
-  | xargs
+  gatherFiles "$data"
+  sortFiles "$data" | xargs
 }
 
-project() {
-  p1=$1
-  name=$2
-  
-  f=$(basename $p1)
-  d1=$(dirname $p1)
-  d2=$tmp/$d1
-  p2=$d2/$f
-  
-  filters=$(genFilters $p1 $name | xargs)
-  
-  mkdir -p $d2
-  eval "cat $p1 | $filters" > $p2
+sortFiles() {
+  order=$(tsort <(echo "$data" | awk -F, '/^DEP/ {print $2}'))
 
-  echo $p2
+  while read -r name; do
+    echo "${files[$name]}"
+  done <<< "$order"
+}
+
+gatherFiles() {
+  data="$1"
+  while read -r type name file; do
+    case $type in
+        FILE)
+          files+=([$name]=$file)
+          ;;
+    esac
+  done <<< "$data"
+}
+
+readDeps() {
+  echo "DEP,0 1"
+  while read -r type name file; do
+    case $type in
+      SOURCE)
+
+        if grep -qP '^#\W*Last' $file; then 
+          echo "DEP,1 $name"
+        elif grep -qP '^#\W*First' $file; then
+          echo "DEP,$name 0"
+        else
+          echo "DEP,0 $name"
+          echo "DEP,$name 1"
+        fi
+          
+        grep -Po '[a-zA-Z0-9]+(?=_)' $file \
+        | sort | uniq \
+        | xargs -I{} echo "DEP,{} $name"
+        ;;
+    esac
+  done
+}
+
+tryProject() {
+  while read -r type name p1; do
+    case $type:$name in
+      SOURCE:@f*)
+        echo "FILE,$name,$p1"
+        ;;
+
+      SOURCE:*)
+        f=$(basename $p1)
+        d1=$(dirname $p1)
+        d2=$tmp/$d1
+        p2=$d2/$f
+
+        filters=$(genFilters $p1 $name | xargs)
+
+        mkdir -p $d2
+        eval "cat $p1 | $filters" > $p2
+
+        echo "FILE,$name,$p2"
+        ;;
+    esac
+  done
+}
+
+readSources() {
+  nextI=1
+  for f in "$@"; do
+    name=$(getName "$f")
+
+    if [ -z $name ]; then
+      name=@f$nextI
+      nextI=$((nextI+1))
+    fi
+
+    echo -e "SOURCE,$name,$f"
+  done
 }
 
 getName() {
   awk '
       /^#Module / {print $2; exit}
       /^#\W+Module / {print $3; exit}
-  ' "$1"
-}
-
-getWeight() {
-  awk '
-      /^#Weight / {w=$2; exit}
-      /^#\W+Weight / {w=$3; exit}
-      END { if(w) {print w} else {print 10} }
   ' "$1"
 }
 
