@@ -9,6 +9,8 @@ binPath:=$(abspath bin)
 preps:=
 starts:=
 files:=
+cleans:=
+cleanAlls:=
 
 me:=$(lastword $(MAKEFILE_LIST))
 include $(shell ./makemodule $$(find $(dir $(me)) -name '*.mk' -o -name 'Makefile' -a ! -path "$(me)"))
@@ -26,7 +28,10 @@ test: $(tests)
 
 stop: $(stops)
 
-clean: $(cleans)
+clean: stop $(cleans)
 	sudo rm -f $(files)
 
+cleanAll: clean $(cleanAlls)
+	sudo rm -rf out
+	sudo rm -rf run
 

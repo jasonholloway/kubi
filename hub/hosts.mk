@@ -38,14 +38,21 @@ start_$(h):
 
 
 clean_$(h):
+	-rm -rf $(root)
+	$(syncOut)
 	$(call ssh,clean)
-	rm -rf $(root)
+
+cleanAll_$(h):
+	-rm -rf $(root)
+	$(syncOut)
+	$(call ssh,cleanAll)
 
 
 preps += prep_$(h)
 postPreps += postPrep_$(h)
 starts += start_$(h)
 cleans += clean_$(h)
+cleanAlls += cleanAll_$(h)
 
 endef
 

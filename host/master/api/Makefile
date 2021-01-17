@@ -83,7 +83,7 @@ ExecStart=$(abspath $(_bin)) \
 	--kubelet-client-key=$(_key) \
 	--kubelet-https=true \
 	--runtime-config='api/all=true' \
-	--service-account-key-file=$(_crt) \
+	--service-account-key-file=$(controller_crt) \
 	--service-cluster-ip-range=10.32.0.0/24 \
 	--service-node-port-range=30000-32767 \
 	--tls-cert-file=$(_crt) \

@@ -7,7 +7,6 @@ _bin:=$(k8sWorker_binPath)/kubelet
 
 _cluster:=kubi
 _user:=system:node:$(host)
-_podCidr:=127.64.0.0/16
 
 define _configData
 kind: KubeletConfiguration
@@ -24,14 +23,14 @@ authorization:
 clusterDomain: "kubi.local"
 clusterDNS:
   - "10.32.0.10"
-podCIDR: $(_podCidr)
+podCIDR: $(cni_podCidr)
 resolvConf: "/run/systemd/resolve/resolv.conf"
 runtimeRequestTimeout: "15m"
 tlsCertFile: $(host_crt)
 tlsPrivateKeyFile: $(host_key)
 endef
 
-$(_config): $(_configTemplate) $(ca_crt) $(host_crt) $(host_key)
+$(_config): $(me) $(ca_crt) $(host_crt) $(host_key)
 	$(file >$@,$(_configData))
 
 
@@ -79,7 +78,7 @@ RestartSec=5
 WantedBy=multi-user.target
 endef
 
-$(_service): $(_serviceTemplate) $(_bin) $(_config) $(_kubeconfig)
+$(_service): $(me) $(_bin) $(_config) $(_kubeconfig)
 	$(file >$@,$(_serviceData))
 
 

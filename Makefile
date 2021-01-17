@@ -7,6 +7,7 @@ postPreps:=
 starts:=
 files:=
 cleans:=
+cleanAlls:=
 
 include $(shell ./makemodule $$(find hub -name '*.mk' -o -name 'Makefile'))
 
@@ -23,6 +24,8 @@ stop: $(stops)
 
 clean: $(cleans)
 
+cleanAll: clean $(cleanAlls)
+	rm -rf out
 
 out/etc:
 	mkdir -p out/etc

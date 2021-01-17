@@ -4,7 +4,7 @@ _confPath:=$(out)/cni/
 _bridgeConf:=$(_confPath)10-bridge.conf
 _localConf:=$(_confPath)99-loopback.conf
 _confs:=$(_bridgeConf) $(_localConf)
-_podCidr:=127.64.0.0/64
+_podCidr:=127.64.0.0/16
 
 _binPath:=$(binPath)/cni
 _binNames:=bandwidth dhcp flannel host-local loopback portmap sbr tuning bridge firewall host-device ipvlan ptp static vlan
