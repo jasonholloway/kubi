@@ -1,8 +1,8 @@
+# Module hosts
+
 hosts:=puce.upis
 
 remoteRoot:=/kubi
-caCrtFile:=out/etc/ca.crt
-
 
 define perHostOuter
 
@@ -22,12 +22,12 @@ endef
 
 define perHostInner
 
-prep_$(h): $(caCrtFile)
+prep_$(h): $(ca_crt)
 	$(syncOut)
 	$(call ssh,prep)
 	$(syncIn)
 
-postPrep_$(h): signCerts
+postPrep_$(h): ca_signCerts
 	$(syncOut)
 
 start_$(h):

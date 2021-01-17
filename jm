@@ -1,0 +1,54 @@
+#!/bin/bash
+
+tmp=tmp #$(mktemp -d)
+
+main() {
+  for file in "$@"; do
+    name=$(getName "$file")
+
+    if [ ! -z "$name" ]; then
+      project "$file" "$name"
+    else
+      echo "$file"
+    fi
+  done | xargs   
+}
+
+project() {
+  p1=$1
+  name=$2
+  
+  f=$(basename $p1)
+  d1=$(dirname $p1)
+  d2=$tmp/$d1
+  p2=$d2/$f
+  
+  filters=$(getVars $p1 | genFilters $name | xargs)
+  
+  mkdir -p $d2
+  eval "cat $p1 | $filters" > $p2
+
+  echo $p2
+}
+
+getName() {
+  awk '
+      /^#Module / {print $2; exit}
+      /^#\W+Module / {print $3; exit}
+  ' "$1"
+}
+
+getVars() {
+  grep -Po '^_[^\W]+?(?=\W*?:|=)' "$1"
+  grep -Po '(?<=^define\W)_[^\W]+' "$1"
+}
+
+genFilters() {
+  mod=$1
+  while read -r var; do
+    echo "perl -pe \'s/(?<![a-zA-Z0-9])${var}/${mod}${var}/g\' | "
+  done
+  echo cat
+}
+
+main "$@"

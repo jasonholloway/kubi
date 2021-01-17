@@ -1,12 +1,10 @@
-mkFile:=$(abspath $(lastword $(MAKEFILE_LIST)))
-keyFile:=out/etc/ca.key
-crtConfFile:=out/etc/ca.crt.conf
-crtFile:=out/etc/ca.crt
+# Module ca
 
-define module
+_key:=out/etc/ca.key
+_crtConf:=out/etc/ca.crt.conf
+_crt:=out/etc/ca.crt
 
-
-define caCrtConf
+define _crtConfData
 [req]
 default_bits			 = 2048
 x509_extensions		 = v3_ca
@@ -23,46 +21,37 @@ authorityKeyIdentifier	= keyid:always, issuer:always
 keyUsage								= critical, cRLSign, digitalSignature, keyCertSign
 endef
 
+$(_key): 
+	mkdir -p $(@D)
+	openssl genrsa -out $@ 2048
 
-$(keyFile): 
-	mkdir -p $$(@D)
-	openssl genrsa -out $$@ 2048
+$(_crtConf):
+	$(file > $@,$(_crtConfData))
 
-$(crtConfFile):
-	$$(file > $$@,$$(caCrtConf))
-
-$(crtFile): $(keyFile) $(crtConfFile)
+$(_crt): $(_key) $(_crtConf)
 	openssl req \
-		-config $(crtConfFile) \
+		-config $(_crtConf) \
 		-x509 -new -nodes \
-		-key $(keyFile) \
+		-key $(_key) \
 		-days 100000 \
-		-out $$@
+		-out $@
 
-signCerts: $(keyFile) $(crtFile)
+_signCerts: $(_key) $(_crt)
 	find out/hosts -name '*csr' \
 	| while read f; do \
 			openssl x509 -req \
-				-CA $(crtFile) \
-				-CAkey $(keyFile) \
+				-CA $(_crt) \
+				-CAkey $(_key) \
 				-set_serial 01 \
 				-days 9999 \
-				$$$$([ -f $$$$f.ext ] && echo "-extfile $$$$f.ext" ) \
-				-in $$$$f \
-				-out $$$${f%.*}.crt; \
+				$$([ -f $$$$f.ext ] && echo "-extfile $$f.ext" ) \
+				-in $$f \
+				-out $${f%.*}.crt; \
 		done
 
 
-caKeyFile:=$(keyFile)
-caCrtFile:=$(crtFile)
+preps += $(_crt)
+postPreps += _signCerts
 
-preps += $(crtFile)
-postPreps += signCerts
-
-files += $(crtFile)
-keyFiles += $(keyFile)
-
-
-endef
-
-$(eval $(module))
+files += $(_crt)
+keyFiles += $(_key)

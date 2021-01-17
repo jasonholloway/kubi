@@ -1,13 +1,15 @@
-mkFile:=$(abspath $(lastword $(MAKEFILE_LIST)))
-binFile:=out/bin/runc
+# Module runc
 
-v:=1.0.0-rc91
-name:=runc.amd64
-url=https://github.com/opencontainers/runc/releases/download/v$(v)/$(name)
+_d:=$(dir $(lastword $(MAKEFILE_LIST)))
+_bin:=out/bin/runc
 
-$(binFile):
-	wget $(url) -O $@
+_v:=1.0.0-rc91
+_name:=runc.amd64
+_url=https://github.com/opencontainers/runc/releases/download/v$(_v)/$(_name)
+
+$(_bin):
+	wget $(_url) -O $@
 	chmod +x $@
 	touch $@
 
-bigFiles += $(binFile)
+bigFiles += $(_bin)

@@ -1,14 +1,14 @@
-mkFile:=$(abspath $(lastword $(MAKEFILE_LIST)))
-keyFile:=out/etc/encryption.key
-yamlFile:=out/etc/encryption.yaml
+# Module encrypt
 
-define module
+_me:=$(abspath $(lastword $(MAKEFILE_LIST)))
+_key:=out/etc/encryption.key
+_config:=out/etc/encryption.yaml
 
-$(keyFile):
-	mkdir -p $$(@D)
-	head -c 32 /dev/urandom | base64 > $$@
+$(_key):
+	mkdir -p $(@D)
+	head -c 32 /dev/urandom | base64 > $@
 
-define yaml
+define _configData
 kind: EncryptionConfig
 apiVersion: v1
 resources:
@@ -18,19 +18,15 @@ resources:
       - aescbc:
           keys:
             - name: key1
-              secret: $$(shell cat $$(keyFile))
+              secret: $(shell cat $(_key))
       - identity: {}
 endef
 
 
-$(yamlFile): $(keyFile) $(mkFile)
-	$$(file > $$@,$$(yaml))
+$(_config): $(_key) $(_me)
+	$(file > $@,$(_configData))
 
 
-preps += $(yamlFile)
-files += $(yamlFile)
-keyFiles += $(keyFile)
-
-endef
-
-$(eval $(module))
+preps += $(_config)
+files += $(_config)
+keyFiles += $(_key)

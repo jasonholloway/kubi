@@ -13,12 +13,9 @@ services:=
 serviceFiles:=
 files:=
 
-include host/0-caCrt.mk
-include host/1-hostCrt.mk
-include host/1-etcHosts.mk
-include $(sort $(wildcard host/master/*.mk))
-# include $(sort $(wildcard host/worker/*.mk))
-include host/2-services.mk
+me:=$(lastword $(MAKEFILE_LIST))
+include $(shell ./jm $$(find $(dir $(me)) -name '*.mk' -o -name 'Makefile' -a ! -path "$(me)"))
+
 
 $(out)/:
 	mkdir -p $(out)

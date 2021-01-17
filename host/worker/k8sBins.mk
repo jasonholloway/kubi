@@ -1,23 +1,23 @@
-bins:=kubectl kubelet kube-proxy
-binPath:=out/bin
-k8sBinFiles:=$(foreach b,$(bins),$(binPath)/$(b))
+# Module k8s
 
-v=1.18.6
-url=https://storage.googleapis.com/kubernetes-release/release/v$(v)/bin/linux/amd64
-k8sBinUrls:=$(foreach b,$(bins),$(url)/$(b))
+_binNames:=kubectl kubelet kube-proxy
+_bins:=$(foreach b,$(_binNames),$(binPath)/$(b))
 
-tmp=$(mktemp -d)
+_v=1.18.6
+_url=https://storage.googleapis.com/kubernetes-release/release/v$(_v)/bin/linux/amd64
+_binUrls:=$(foreach b,$(_binNames),$(_url)/$(b))
 
-$(k8sBinFiles):
+$(_bins): tmp:=$(shell mktemp -d)
+$(_bins):
 	cd $(tmp) \
-	&& wget --show-progress --timestamping $(k8sBinUrls) \
+	&& wget --show-progress --timestamping $(_binUrls) \
 	&& chmod +x * \
 	&& mkdir -p $(binPath) \
 	&& mv * $(binPath)/ 
 	rm -rf $(tmp)
 
-kubectlBin:=$(binPath)/kubectl
-kubeletBin:=$(binPath)/kubelet
-proxyBin:=$(binPath)/kube-proxy
+kubectl_bin:=$(binPath)/kubectl
+kubelet_bin:=$(binPath)/kubelet
+proxy_bin:=$(binPath)/kube-proxy
 
-binFiles += $(k8sBinFiles)
+binFiles += $(_bins)

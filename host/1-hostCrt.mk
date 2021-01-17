@@ -1,17 +1,17 @@
-keyFile:=$(out)/host.key
-csrFile:=$(out)/host.csr
-csrConfFile:=$(out)/host.csr.conf
-csrExtFile:=$(out)/host.csr.ext
-crtFile:=$(out)/host.crt
+# Module host
 
-define module
+_key:=$(out)/host.key
+_csr:=$(out)/host.csr
+_csrConf:=$(out)/host.csr.conf
+_csrExt:=$(out)/host.csr.ext
+_crt:=$(out)/host.crt
 
-$(keyFile):
-	mkdir -p $$(@D)
-	openssl genrsa -out $$@ 2048
+$(_key):
+	mkdir -p $(@D)
+	openssl genrsa -out $@ 2048
 
 
-define csrConf
+define _csrConfData
 [req]
 default_bits = 2048
 prompt = no
@@ -24,7 +24,7 @@ CN = system:node:$(host)
 endef 
 
 
-define csrExtConf
+define _csrExtData
 keyUsage = keyEncipherment,dataEncipherment
 extendedKeyUsage = serverAuth,clientAuth
 subjectAltName = @alt_names
@@ -34,28 +34,23 @@ DNS.1 = $(host)
 endef
 
 
-$(csrConfFile):
-	$$(file > $$@,$$(csrConf))
+$(_csrConf):
+	$(file > $@,$(_csrConfData))
 
-$(csrExtFile):
-	$$(file > $$@,$$(csrExtConf))
+$(_csrExt):
+	$(file > $@,$(_csrExtData))
 
-$(csrFile): $(keyFile) $(csrConfFile) $(csrExtFile)
+$(_csr): $(_key) $(_csrConf) $(_csrExt)
 	openssl req -new -nodes \
-		-config $(csrConfFile) \
-		-key $(keyFile) \
-		-out $$@
+		-config $(_csrConf) \
+		-key $(_key) \
+		-out $@
+
+$(_crt):
+	[ -f $@ ] || exit 1
 
 
-$(crtFile):
-	[ -f $$@ ] || exit 1
-
-
-preps += $(csrFile)
-starts += $(crtFile)
-keyFiles += $(keyFile)
-files += $(csrFile) $(csrConfFile) $(csrExtFile) $(crtFile)
-
-endef
-
-$(eval $(module))
+preps += $(_csr)
+starts += $(_crt)
+keyFiles += $(_key)
+files += $(_csr) $(_csrConf) $(_csrExt) $(_crt)

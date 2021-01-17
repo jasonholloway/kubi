@@ -1,55 +1,53 @@
-mkFile:=$(abspath $(lastword $(MAKEFILE_LIST)))
-keyFile:=out/etc/admin.key
-csrFile:=out/etc/admin.csr
-crtFile:=out/etc/admin.crt
-kubeconfigFile:=out/etc/admin.kubeconfig
+# Module admin
 
-define module
+_me:=$(abspath $(lastword $(MAKEFILE_LIST)))
+_key:=out/etc/admin.key
+_csr:=out/etc/admin.csr
+_crt:=out/etc/admin.crt
+_kubeconfig:=out/etc/admin.kubeconfig
 
-$(keyFile): 
-	mkdir -p $$(@D)
-	openssl genrsa -out $$@ 2048
+$(_key): 
+	mkdir -p $(@D)
+	openssl genrsa -out $@ 2048
 
-$(csrFile):
+$(_csr):
 	openssl req -new -nodes \
 		-sha256 \
 		-subj "/O=system:masters/CN=kubi-admin" \
-		-key $(keyFile) \
-		-out $$@
+		-key $(_key) \
+		-out $@
 
-$(crtFile): $(csrFile) $(caCrtFile) $(caKeyFile)
+$(_crt): $(_csr) $(ca_crt) $(ca_key)
 	openssl x509 -req \
 		-sha256 \
-		-CA $(caCrtFile) \
-		-CAkey $(caKeyFile) \
+		-CA $(ca_crt) \
+		-CAkey $(ca_key) \
 		-set_serial 01 \
 		-extensions req_ext \
 		-days 9999 \
-		-in $(csrFile) \
+		-in $(_csr) \
 		-out $@
 
-$(kubeconfigFile): $(caCrtFile) $(crtFile) $(keyFile) $(mkFile)
+_user:=SOMEUSER
+
+$(_kubeconfig): $(ca_crt) $(_crt) $(_key) $(_me)
 	kubectl config set-cluster kubi \
-		--certificate-authority=$(caCrtFile) \
+		--certificate-authority=$(ca_crt) \
 		--embed-certs=true \
 		--server=https://kubi:6443 \
-		--kubeconfig=$$@
+		--kubeconfig=$@
 	kubectl config set-credentials admin \
-		--client-certificate=$(crtFile) \
-		--client-key=$(keyFile) \
+		--client-certificate=$(_crt) \
+		--client-key=$(_key) \
 		--embed-certs=true \
-		--kubeconfig=$$@
+		--kubeconfig=$@
 	kubectl config set-context default \
 		--cluster=kubi \
-		--user=$(user) \
-		--kubeconfig=$$@
+		--user=$(_user) \
+		--kubeconfig=$@
 	kubectl config use-context default \
-		--kubeconfig=$$@
+		--kubeconfig=$@
 
 
-files += $(crtFile) $(kubeconfigFile)
-keyFiles += $(keyFile)
-
-endef
-
-$(eval $(module))
+files += $(_crt) $(_kubeconfig)
+keyFiles += $(_key)

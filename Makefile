@@ -1,6 +1,6 @@
 MAKEFLAGS += -r -R
 SHELL:=/bin/bash
-.DEFAULT_GOAL:=prep
+.DEFAULT_GOAL:=out/prepped
 
 preps:=
 postPreps:=
@@ -8,7 +8,8 @@ starts:=
 files:=
 cleans:=
 
-include $(sort $(wildcard hub/*.mk))
+me:=$(lastword $(MAKEFILE_LIST))
+include $(shell ./jm $$(find hub -name '*.mk' -o -name 'Makefile'))
 
 out/prepped: $(preps)
 	touch $@

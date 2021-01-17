@@ -1,4 +1,4 @@
-caCrtFile:=out/etc/ca.crt
+# Module ca
 
-$(caCrtFile):
-	[ -f $(caCrtFile) ] || exit 1
+_crt:=out/etc/ca.crt
+
