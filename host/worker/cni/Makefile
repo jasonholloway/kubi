@@ -1,7 +1,7 @@
 # Module cni
 
 _confPath:=$(out)/cni/
-_bridgeConf:=$(_confPath)10-bridge.conf
+_bridgeConf:=$(_confPath)10-bridge.conflist
 _localConf:=$(_confPath)99-loopback.conf
 _confs:=$(_bridgeConf) $(_localConf)
 _podCidr:=127.64.0.0/16
@@ -33,17 +33,25 @@ define _bridgeConfData
 {
 	"cniVersion": "0.3.1",
 	"name": "bridge",
-	"type": "bridge",
-	"bridge": "cnio0",
-	"isGateway": true,
-	"ipMasq": true,
-	"ipam": {
-		"type": "host-local",
-		"ranges": [
-			[{"subnet": "$(_podCidr)"}]
-		],
-		"routes": [{"dst": "0.0.0.0/0"}]
-	}
+	"plugins": [
+		{
+			"type": "bridge",
+			"bridge": "cnio0",
+			"ipam": {
+				"type": "host-local",
+				"ranges": [
+					[{"subnet": "$(_podCidr)"}]
+				],
+				"routes": [{"dst": "0.0.0.0/0"}]
+			},
+			"isGateway": true,
+			"ipMasq": true
+		},
+		{
+			"type": "portmap",
+			"capabilities": {"portMappings":true}
+		}
+	]
 }
 endef
 

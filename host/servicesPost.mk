@@ -13,8 +13,8 @@ $(servicesStarted): $(serviceFiles)
 stopServices:
 	if [ -e $(servicesStarted) ]; then \
 		while read s; do \
-			sudo systemctl disable --now $$s; \
-		done; \
+			sudo systemctl disable --now $$s || true; \
+		done < $(servicesStarted); \
 	fi
 	-rm $(servicesStarted)
 

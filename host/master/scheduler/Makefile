@@ -24,10 +24,11 @@ _serviceName:=kube-scheduler
 _service:=$(servicePath)/$(_serviceName).service
 _kubeconfig:=$(out)/scheduler.kubeconfig
 _config:=$(out)/scheduler.yaml
-_bin:=$(k8s_binPath)/kube-scheduler
 
 _cluster:=kubi
 _user:=system:kube-scheduler
+
+$(eval $(call k8sBins_download,kube-scheduler,_bin))
 
 $(_kubeconfig): $(kubectl_bin) $(ca_crt)
 	kubectl config set-cluster $(_cluster) \

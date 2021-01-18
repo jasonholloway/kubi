@@ -24,7 +24,10 @@ keyFiles += $(_key)
 _serviceName:=kube-controller
 _service:=$(out)/systemd/$(_serviceName).service
 _kubeconfig:=$(out)/etc/controller.kubeconfig
-_bin:=$(k8s_binPath)/kube-controller-manager
+
+
+$(eval $(call k8sBins_download,kube-controller-manager,_bin))
+
 
 _cluster:=kubi
 _user:=system:kube-controller-manager

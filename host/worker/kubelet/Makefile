@@ -3,7 +3,11 @@
 _service:=$(out)/systemd/kubelet.service
 _config:=$(out)/kubelet.yaml
 _kubeconfig:=$(out)/kubelet.kubeconfig
-_bin:=$(k8sWorker_binPath)/kubelet
+_podsDir:=$(abspath run/pods)
+
+
+$(eval $(call k8sBins_download,kubelet,_bin))
+
 
 _cluster:=kubi
 _user:=system:node:$(host)
@@ -65,6 +69,7 @@ ExecStart=$(_bin) \
 	--config=$(_config) \
 	--container-runtime=remote \
 	--container-runtime-endpoint=unix://$(containerd_sock) \
+  --pod-manifest-path=$(_podsDir) \
 	--image-pull-progress-deadline=1m \
 	--kubeconfig=$(_kubeconfig) \
 	--network-plugin=cni \
@@ -79,8 +84,8 @@ WantedBy=multi-user.target
 endef
 
 $(_service): $(me) $(_bin) $(_config) $(_kubeconfig)
+	mkdir -p $(_podsDir)
 	$(file >$@,$(_serviceData))
-
 
 
 services += kubelet

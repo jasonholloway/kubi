@@ -76,6 +76,8 @@ tryProject() {
         mkdir -p $d2
         eval "cat $p1 | $filters" > $p2
 
+        sed -i "1i @moduleName:=${name}" $p2
+
         echo "FILE,$name,$p2"
         ;;
     esac

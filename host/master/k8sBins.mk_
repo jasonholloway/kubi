@@ -9,9 +9,6 @@ _url=https://storage.googleapis.com/kubernetes-release/release/v$(v)/bin/linux/a
 _binUrls:=$(foreach b,$(_binNames),$(_url)/$(b))
 
 
-$(eval $(call k8sBins_download,kube-scheduler,_schedulerBin))
-$(warning BLAH $(_schedulerBin))
-
 
 $(_bins): tmp:=$(mktemp -d)
 $(_bins):

@@ -47,14 +47,15 @@ files += $(_crt)
 keyFiles += $(_key)
 
 
+$(eval $(call k8sBins_download,kube-apiserver,_bin))
 
-_bin:=$(k8s_binPath)/kube-apiserver
+
 _service:=$(out)/systemd/kube-api.service
-
 encryptionYamlFile:=$(abspath out/etc/encryption.yaml)
 
 # internalIp:=127.0.0.1
 # --advertise-address=$(internalIp)
+
 
 define _serviceData
 [Unit]
